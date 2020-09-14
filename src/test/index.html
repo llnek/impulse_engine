@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<!--
+This is only to be used for the verlet & impulse demo.
+-->
+<html>
+    <head>
+        <title>PhysicsEngine</title>
+    <style type="text/css">
+      body {
+        XXXbackground-color: #fff;
+        background-color: #eee;
+      }
+    </style>
+    </head>
+    <body onkeydown="return userControl(event);"
+          onmousedown="return mouseControl(event);"
+          onload="PhysicsGame()">
+
+        <table style="padding: 2px">
+            <tr>
+                <td>
+                    <div>
+                        <canvas id="canvas"></canvas>
+                    </div>
+                </td>
+                <td>
+                    <div id="uiEchoString">  </div>
+                </td>
+            </tr>
+        </table>
+
+        <script type="text/javascript" src="core.js"></script>
+<script type="text/javascript" src="math.js"></script>
+<script type="text/javascript" src="gfx.js"></script>
+<script type="text/javascript" src="geo.js"></script>
+<script type="text/javascript" src="impulse.js"></script>
+<script type="text/javascript" src="shape.js"></script>
+<script type="text/javascript" src="body.js"></script>
+<script type="text/javascript" src="manifold.js"></script>
+<script type="text/javascript" src="collision.js"></script>
+<script type="text/javascript" src="scene.js"></script>
+<script type="text/javascript" src="impulse_demo.js"></script>
+
+    </body>
+</html>
