@@ -140,15 +140,27 @@
     };
     const _4ops={ "+": (a,b)=>a+b, "-": (a,b)=>a-b,
                   "*": (a,b)=>a*b, "/": (a,b)=>a/b };
-    function _vecXXX(op,a,b){
-      return is.num(b) ? a.map(v => op(v,b))
-                       : (a.length===b.length) ? a.map((v,i) => op(v,b[i])) : undefined
+    function _vecXXX(op,a,b,local){
+      if(is.vec(b) &&
+         a.length !== b.length)
+        throw "Error: Mismatch vector length";
+      let n= is.num(b);
+      let out= local ? a : new Array(a.length);
+      for(let i=0;i<a.length;++i)
+        out[i]=op(a[i], n?b:b[i]);
+      return out;
+      //return is.num(b) ? a.map(v => op(v,b)) : (a.length===b.length) ? a.map((v,i) => op(v,b[i])) : undefined
     }
     /**
      * @public
      * @function
      */
     _M.vecAdd=function(a,b){ return _vecXXX(_4ops["+"],a,b) };
+    /**
+     * @public
+     * @function
+     */
+    _M.vecAddSelf=function(a,b){ return _vecXXX(_4ops["+"],a,b,1) };
     /**
      * @function
      * @public
@@ -158,12 +170,27 @@
      * @public
      * @function
      */
+    _M.vecSubSelf=function(a,b){ return _vecXXX(_4ops["-"],a,b,1) };
+    /**
+     * @public
+     * @function
+     */
     _M.vecMul=function(a,b){ return _vecXXX(_4ops["*"],a,b) };
     /**
      * @public
      * @function
      */
+    _M.vecMulSelf=function(a,b){ return _vecXXX(_4ops["*"],a,b,1) };
+    /**
+     * @public
+     * @function
+     */
     _M.vecDiv=function(a,b){ return _vecXXX(_4ops["/"],a,b) };
+    /**
+     * @public
+     * @function
+     */
+    _M.vecDivSelf=function(a,b){ return _vecXXX(_4ops["/"],a,b,1) };
     /**
      * Dot product of vectors, cosα = a·b / (|a| * |b|).
      *
@@ -315,9 +342,14 @@
      * @public
      * @function
      */
-    _M.vecNeg=function(v){ return this.vecMul(v, -1) };
+    //_M.vecNeg=function(v){ return this.vecMul(v, -1) };
     _M.vecFlip=function(v){ return this.vecMul(v, -1) };
-    _M.vecReverse=function(v){ return this.vecMul(v, -1) };
+    /**
+     * @public
+     * @function
+     */
+    _M.vecFlipSelf=function(v){ return this.vecMulSelf(v, -1) };
+    //_M.vecReverse=function(v){ return this.vecMul(v, -1) };
     /**
      * Normal of a vector.
      *

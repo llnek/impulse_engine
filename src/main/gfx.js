@@ -90,7 +90,7 @@
      * @function
      */
     _G.drawShapePoly=function(ctx,poly){
-      return this.drawPoints(ctx,poly.m_vertices,poly.m_vertexCount);
+      return this.drawPoints(ctx,poly.points);
     };
     /**
      * Draw a circle onto the canvas.  If a starting point

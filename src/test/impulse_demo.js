@@ -4,6 +4,7 @@ function userControl(e){
 }
 
 let XXXX={
+  root: null,
   n:1
 };
 function mouseControl(evt){
@@ -32,19 +33,35 @@ function mouseControl(evt){
 function _draw(s,ctx){
   ctx.clearRect(0,0,s.width,s.height);
   s.render(ctx);
-  //(c/set-js! canvas "strokeStyle" (if (= i cur) "red" "blue"))
 }
 
-function _run(s,canvas,IE){
+function _run(s,canvas){
   let ctx=canvas.getContext("2d");
   ctx.strokeStyle="#ffffff";
   s.height=canvas.height;
   s.width=canvas.width;
-  s.cur=0;
   function loop(){
     requestAnimationFrame(loop);
-    _draw(s,ctx,IE);
+    _draw(s,ctx);
     s.step();
+    for(let b,i=0;i<s.bodies.length;++i){
+      b=s.bodies[i];
+      if(!XXXX._2d.containsPoint(XXXX.IE.gWorld,b.position[0],b.position[1]))
+        if(!XXXX._2d.rectContainsRect(XXXX.IE.gWorld,b.shape.getAABB())){
+          s.bodies.splice(i,1);
+          --i;
+        }
+    }
+    if(s.bodies.length===1 && !XXXX.root){
+      let b= s.bodies[0];
+      XXXX.rootOrient=b.orient;
+      XXXX.root=b;
+      XXXX.root.setOrient(0);
+    }
+    if(s.bodies.length>1 && XXXX.root){
+      XXXX.root.setOrient(XXXX.rootOrient);
+      XXXX.root=null;
+    }
   }
   loop();
 }
@@ -55,12 +72,12 @@ function PhysicsGame(){
   let w=800,h=640;
   let s= new IE.Scene(1/60.0,10);
   XXXX.Core=window["io.czlab.mcfud.core"]();
-  XXXX.Geo2d=window["io.czlab.mcfud.geo2d"]();
+  XXXX._2d=window["io.czlab.mcfud.geo2d"]();
   XXXX.IE=IE;
   XXXX.s=s;
   canvas.width=w;
   canvas.height=h;
-  IE.gWorld= new XXXX.Geo2d.Rect(0,0,w,h);
+  IE.gWorld= new XXXX._2d.Rect(0,0,w,h);
   let c=s.add(new IE.Circle(20),400,40);
   let p=s.add(new IE.Polygon().setBox(300,20),400,320);
   p.setOrient(-2.8).setStatic();

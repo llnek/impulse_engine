@@ -34,30 +34,28 @@
      */
     class Body{
       constructor(shape_, x, y){
-        this.shape= shape_.clone();
+        this.shape= shape_;
         this.shape.body = this;
         this.position= _M.V2(x,y);
         this.velocity= _M.V2();
         this.angularVelocity = 0;
         this.torque = 0;
-        this.orient = _.randFloat(-Math.PI, Math.PI);
+        this.rgb = "blue";
         this.force= _M.V2();
         this.staticFriction = 0.5;
         this.dynamicFriction = 0.3;
         this.restitution = 0.2;
+        this.orient = _.randFloat(-Math.PI, Math.PI);
+        if(this.shape.isCircular()){ this.rgb = "magenta" }
+        //do this last
         this.shape.initialize();
-        if(this.shape.isCircular()){
-          this.rgb = "red"
-        }else{
-          this.rgb = "blue";
-        }
       }
       applyForce(f){
         this.force= _M.vecAdd(this.force,f);
         return this;
       }
       applyImpulse(impulse, contactVector){
-        this.velocity= _M.vecAdd(this.velocity, _M.vecMul(impulse,this.im));
+        _M.vecAddSelf(this.velocity, _M.vecMul(impulse,this.im));
         this.angularVelocity += this.iI * _M.vec2Cross(contactVector, impulse);
         return this;
       }
@@ -75,8 +73,7 @@
       }
     }
 
-    IE.Body=Body;
-    return IE;
+    return _.inject(IE, { Body:Body })
   };
 
 })(this);

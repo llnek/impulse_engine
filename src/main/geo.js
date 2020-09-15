@@ -25,6 +25,8 @@
   global["io.czlab.mcfud.geo2d"]=function(){
     if(_singleton) { return _singleton }
     const _M=global["io.czlab.mcfud.math"]();
+    const Core=global["io.czlab.mcfud.core"]();
+    const _=Core.u;
     const _G={};
     /**
      * @public
@@ -38,7 +40,6 @@
         this.bottom=bottom;
       }
     }
-    _G.Box4=Box4;
     /**
      * @public
      * @class
@@ -54,10 +55,8 @@
           this.width=width;
           this.height=height;
         }
-        this.rotation=0;
       }
     }
-    _G.Rect=Rect;
     /**
      * @public
      * @class
@@ -71,15 +70,14 @@
         return new Area(this.width/2,this.height/2)
       }
     }
-    _G.Area=Area;
     /**
      * Calculate the area of this polygon.
      * @private
      * @function
      */
-    function _polyArea(poly){
+    _G.polyArea=function(points){
       let area=0;
-      for(let p,q,i2,len=poly.points.length,i=0;i<len;++i){
+      for(let p,q,i2,len=points.length,i=0;i<len;++i){
         i2= (i+1)%len;
         p=poly.points[i];
         q=poly.points[i2];
@@ -92,14 +90,14 @@
      * @public
      * @function
      */
-    _G.calcPolyCenter=function(poly){
-      let A= 6*_polyArea(poly);
+    _G.calcPolyCenter=function(points){
+      let A= 6*this.polyArea(points);
       let cx=0;
       let cy=0;
-      for(let p,q,i2,i=0,len=poly.points.length;i<len;++i){
+      for(let p,q,i2,i=0,len=points.length;i<len;++i){
         i2= (i+1)%len;
-        p=poly.points[i];
-        q=poly.points[i2];
+        p=points[i];
+        q=points[i2];
         cx += (p[0]+q[0]) * (p[0]*q[1]-q[0]*p[1]);
         cy += (p[1]+q[1]) * (p[0]*q[1]-q[0]*p[1]);
       }
@@ -110,26 +108,10 @@
      * @class
      */
     class Polygon{
-      constructor(x,y){
-        if(arguments.length===0){
-          x=0;y=0;
-        }
-        this.pos= _M.V2(x,y);
-        this.rotation=0;
+      constructor(){
         this.points=[];
-        this._cpoints=[];
-      }
-      setBox(w,h){
-        this.width=w;
-        this.height=h;
-        return this;
-      }
-      setPoints(pts){
-        this.points=pts;
-        return this;
       }
     }
-    _G.Polygon=Polygon;
     /**
      * @public
      * @class
@@ -140,24 +122,15 @@
         this.q= _M.V2(x2,y2);
       }
     }
-    _G.Line=Line;
     /**
      * @public
      * @class
      */
     class Circle{
-      constructor(x,y,radius){
-        if(arguments.length===1){
-          this.radius=x;
-          this.pos= _M.V2();
-        }else{
-          this.pos= _M.V2(x,y);
-          this.radius=radius;
-        }
-        this.rotation=0;
+      constructor(radius){
+        this.radius=radius;
       }
     }
-    _G.Circle=Circle;
     /**
      * Shift a set of points.
      * @public
@@ -178,25 +151,15 @@
      * Find the vertices of a rectangle.
      * @public
      * @function
-     * @returns points in counter-cwise, bottom-left first.
+     * @returns points in counter-cwise, bottom-right first.
      */
     _G.calcRectPoints=function(w,h){
       let w2=w/2;
       let h2=h/2;
-      return [_M.V2(-hw,-hh),
-              _M.V2(hw,-hh),
+      return [_M.V2(hw,-hh),
               _M.V2(hw,hh),
-              _M.V2(-hw,hh)]
-    };
-    /**
-     * @public
-     * @function
-     */
-    _G.box=function(x,y,w,h){
-      if(arguments.length===2){
-        w=x;h=y;x=0;y=0;
-      }
-      return new Polygon(x,y).setBox(w,h).setPoints(calcRectPoints(w,h));
+              _M.V2(-hw,hh),
+              _M.V2(-hw,-hh)];
     };
     /**
      * @public
@@ -315,6 +278,9 @@
                       Math.min(r1.pos[1]+r1.height, r2.pos[1]+r2.height)-y)
     };
 
-    return (_singleton=_G);
+    return _singleton= _.inject(_G, {Circle: Circle,
+                                     Line: Line,
+                                     Polygon: Polygon, Rect: Rect, Area: Area});
   };
+
 })(this);

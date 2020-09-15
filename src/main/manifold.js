@@ -27,6 +27,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.manifold"]=function(IE,Core,_M){
+    const _= Core.u;
     /**
      * @public
      * @class
@@ -130,8 +131,8 @@
         let correction =
           _M.vecMul(this.normal,
           (Math.max(this.penetration-k_slop, 0.0)/(this.A.im+this.B.im)) * percent);
-        this.A.position = _M.vecSub(this.A.position,_M.vecMul(correction, this.A.im));
-        this.B.position = _M.vecAdd(this.B.position,_M.vecMul(correction, this.B.im));
+        _M.vecSubSelf(this.A.position,_M.vecMul(correction, this.A.im));
+        _M.vecAddSelf(this.B.position,_M.vecMul(correction, this.B.im));
         return this;
       }
       infiniteMassCorrection(){
@@ -141,8 +142,7 @@
       }
     }
 
-    IE.Manifold=Manifold;
-    return IE;
+    return _.inject(IE, { Manifold: Manifold })
   };
 
 })(this);

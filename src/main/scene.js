@@ -26,7 +26,7 @@
    * @public
    * @function
    */
-  global["io.czlab.impulse_engine.scene"]=function(IE,Core,_M,_G){
+  global["io.czlab.impulse_engine.scene"]=function(IE,Core,_M,_G,_2d){
     const _=Core.u;
 
     // Acceleration
@@ -46,9 +46,8 @@
       if(_M.fuzzyZero(b.im))
         return;
       let dt2= dt/2.0;
-      b.velocity =
-        _M.vecAdd(b.velocity,
-         _M.vecMul(_M.vecAdd(_M.vecMul(b.force,b.im),IE.gravity),dt2));
+      _M.vecAddSelf(b.velocity,
+                    _M.vecMul(_M.vecAdd(_M.vecMul(b.force,b.im),IE.gravity),dt2));
       b.angularVelocity += b.torque * b.iI * dt2;
     }
     /**
@@ -58,7 +57,7 @@
     function _integrateVelocity(b, dt){
       if(_M.fuzzyZero(b.im))
         return;
-      b.position = _M.vecAdd(b.position,_M.vecMul(b.velocity,dt));
+      _M.vecAddSelf(b.position,_M.vecMul(b.velocity,dt));
       b.orient += b.angularVelocity * dt;
       b.setOrient(b.orient);
       _integrateForces(b, dt);
@@ -69,10 +68,10 @@
      */
     class Scene{
       constructor(dt, iterations){
-        this.m_dt= dt;
+        this.dt= dt;
         this.bodies=[];
         this.contacts=[];
-        this.m_iterations= iterations;
+        this.tries= iterations;
       }
       step(){
         // Generate new collision info
@@ -83,85 +82,39 @@
             B = this.bodies[j];
             if(_M.fuzzyZero(A.im) && _M.fuzzyZero(B.im))
               continue;
-            m= new IE.Manifold(A, B);
-            m.solve();
+            m= new IE.Manifold(A, B).solve();
             if(m.contact_count>0)
               this.contacts.push(m);
           }
         }
         // Integrate forces
-        for(let i=0; i < this.bodies.length; ++i)
-          _integrateForces(this.bodies[i], this.m_dt);
         // Initialize collision
-        for(let i=0; i < this.contacts.length; ++i)
-          this.contacts[i].initialize();
         // Solve collisions
-        for(let j = 0; j < this.m_iterations; ++j)
-          for(let i = 0; i < this.contacts.length; ++i)
-            this.contacts[i].applyImpulse();
         // Integrate velocities
-        for(let i = 0; i < this.bodies.length; ++i)
-          _integrateVelocity(this.bodies[i], this.m_dt);
         // Correct positions
-        for(let i = 0; i < this.contacts.length; ++i)
-          this.contacts[i].positionalCorrection();
         // Clear all forces
-        for(let b, i = 0; i < this.bodies.length; ++i){
-          b = this.bodies[i];
+        this.bodies.forEach(b => _integrateForces(b, this.dt));
+        this.contacts.forEach(c => c.initialize());
+        for(let i=0;i<this.tries;++i)
+          this.contacts.forEach(c => c.applyImpulse());
+        this.bodies.forEach(b => _integrateVelocity(b, this.dt));
+        this.contacts.forEach(c => c.positionalCorrection());
+        this.bodies.forEach(b => {
           _M.vecCopy(b.force, 0,0);
           b.torque = 0;
-        }
-        for(let b,i=0;i<this.bodies.length;++i){
-          b=this.bodies[i];
-          if(!_G.containsPoint(IE.gWorld,b.position[0],b.position[1]))
-            if(!_G.rectContainsRect(IE.gWorld,b.shape.getAABB())){
-              this.bodies.splice(i,1);
-              --i;
-            }
-        }
+        });
       }
       render(ctx){
-        for(let b,i = 0; i < this.bodies.length; ++i){
-          b = this.bodies[i];
-          b.shape.draw(ctx);
-        }
-        //glPointSize( 4.0f );
-        //glBegin( GL_POINTS );
-        //glColor3f( 1.0f, 0.0f, 0.0f );
-        for(let m,i = 0; i < this.contacts.length; ++i){
-          m = this.contacts[i];
-          for(let c,j = 0; j < m.contact_count; ++j){
-            c = m.contacts[j];
-            //glVertex2f( c.x, c.y );
-          }
-        }
-        //glEnd( );
-        //glPointSize( 1.0f );
-        //glBegin( GL_LINES );
-        //glColor3f( 0.0f, 1.0f, 0.0f );
-        for(let m,n,i = 0; i < this.contacts.length; ++i){
-          m = this.contacts[i];
-          n = m.normal;
-          for(let c,j = 0; j < m.contact_count; ++j){
-            c = m.contacts[j];
-            //glVertex2f( c.x, c.y );
-            n *= 0.75;
-            c += n;
-            //glVertex2f( c.x, c.y );
-          }
-        }
-        //glEnd();
+        this.bodies.forEach(b => b.shape.draw(ctx));
       }
       add(shape, x, y){
-        _.assert(shape);
         let b = new IE.Body(shape, x, y);
         this.bodies.push(b);
         return b;
       }
     }
 
-    IE.Scene=Scene;
-    return IE;
+    return _.inject(IE, { Scene: Scene })
   };
 
 })(this);

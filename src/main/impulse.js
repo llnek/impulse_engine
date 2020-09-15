@@ -30,7 +30,8 @@
   global["io.czlab.impulse_engine.core"]=function(){
     const Core=global["io.czlab.mcfud.core"]();
     const _M=global["io.czlab.mcfud.math"]();
-    const _G=global["io.czlab.mcfud.geo2d"]();
+    const _G=global["io.czlab.mcfud.gfx"]();
+    const _2d=global["io.czlab.mcfud.geo2d"]();
     const _=Core.u;
     const is=Core.is;
     /**
@@ -92,7 +93,7 @@
     global["io.czlab.impulse_engine.body"](_XP,Core,_M);
     global["io.czlab.impulse_engine.manifold"](_XP,Core,_M);
     global["io.czlab.impulse_engine.collision"](_XP,Core,_M);
-    global["io.czlab.impulse_engine.scene"](_XP,Core,_M,_G);
+    global["io.czlab.impulse_engine.scene"](_XP,Core,_M,_G,_2d);
     return _XP;
   };
 

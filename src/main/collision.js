@@ -29,11 +29,12 @@
   global["io.czlab.impulse_engine.collision"]=function(IE,Core,_M){
     const _M2=IE.M2;
     const _=Core.u;
+    const _C={};
     /**
      * @public
      * @function
      */
-    IE.dispatch=function(t1,t2){
+    _C.dispatch=function(t1,t2){
       if(t1===IE.eCircle){
         return t2===IE.eCircle ? this.circleCircle : this.circlePolygon;
       } else if(t1===IE.ePoly){
@@ -44,7 +45,7 @@
      * @public
      * @function
      */
-    IE.circleCircle=function(m, a, b){
+    _C.circleCircle=function(m, a, b){
       let A = a.shape;
       let B = b.shape;
       // Calculate translational vector, which is normal
@@ -73,19 +74,18 @@
      * @public
      * @function
      */
-    IE.circlePolygon=function(m, a, b){
+    _C.circlePolygon=function(m, a, b){
       let A = a.shape;
       let B = b.shape;
       m.contact_count = 0;
       // Transform circle center to Polygon model space
-      let center = a.position;
-      center = _M2.mul(B.u.transpose(), _M.vecSub(center,b.position));
+      let center = _M2.mul(B.u.transpose(), _M.vecSub(a.position,b.position));
       // Find edge with minimum penetration
       // Exact concept as using support points in Polygon vs Polygon
       let separation = -Infinity;
       let faceNormal = 0;
-      for(let i = 0; i < B.m_vertexCount; ++i){
-        let s = _M.vecDot(B.m_normals[i], _M.vecSub(center,B.m_vertices[i]));
+      for(let i=0; i < B.points.length; ++i){
+        let s = _M.vecDot(B.normals[i], _M.vecSub(center,B.points[i]));
         if(s > A.radius)
           return;
         if(s > separation){
@@ -94,13 +94,13 @@
         }
       }
       // Grab face's vertices
-      let v1 = B.m_vertices[faceNormal];
-      let i2 = faceNormal+1 < B.m_vertexCount ? faceNormal+1 : 0;
-      let v2 = B.m_vertices[i2];
+      let v1 = B.points[faceNormal];
+      let i2 = (faceNormal+1) % B.points.length;
+      let v2 = B.points[i2];
       // Check to see if center is within polygon
       if(separation < IE.EPSILON){
         m.contact_count = 1;
-        m.normal = _M.vecFlip(_M2.mul(B.u,B.m_normals[faceNormal]));
+        m.normal = _M.vecFlip(_M2.mul(B.u,B.normals[faceNormal]));
         _M.vecSet(m.contacts[0],
                   _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
         m.penetration = A.radius;
@@ -116,10 +116,8 @@
           return;
         m.contact_count = 1;
         let n = _M.vecSub(v1,center);
-        n = _M.vecUnit(_M2.mul(B.u, n));
-        m.normal = n;
-        v1 = _M.vecAdd(_M2.mul(B.u,v1),b.position);
-        _M.vecSet(m.contacts[0], v1);
+        m.normal = _M.vecUnit(_M2.mul(B.u, n));
+        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v1),b.position));
       }
       // Closest to v2
       else if(dot2 <= 0.0){
@@ -127,18 +125,14 @@
           return;
         m.contact_count = 1;
         let n = _M.vecSub(v2,center);
-        v2 = _M.vecAdd(_M2.mul(B.u,v2),b.position);
-        _M.vecSet(m.contacts[0], v2);
-        n = _M.vecUnit(_M2.mul(B.u, n));
-        m.normal = n;
-      }
-      // Closest to face
-      else{
-        let n = B.m_normals[faceNormal];
+        m.normal = _M.vecUnit(_M2.mul(B.u, n));
+        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v2),b.position));
+      }else{
+        // Closest to face
+        let n = B.normals[faceNormal];
         if(_M.vecDot(_M.vecSub(center,v1), n) > A.radius)
           return;
-        n = _M2.mul(B.u, n);
-        m.normal = _M.vecFlip(n);
+        m.normal = _M.vecFlip(_M2.mul(B.u, n));
         _M.vecSet(m.contacts[0],
                   _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
         m.contact_count = 1;
@@ -150,7 +144,7 @@
      */
     IE.polygonCircle=function(m, a, b){
       this.circlePolygon(m, b, a);
-      m.normal = _M.vecFlip(m.normal);
+      _M.vecFlipSelf(m.normal);
     };
     /**
      * @private
@@ -159,9 +153,10 @@
     function _findAxisLeastPenetration(A, B){
       let bestDistance = -Infinity;
       let bestIndex;
-      for(let i = 0; i < A.m_vertexCount; ++i){
+      for(let i=0; i < A.points.length; ++i){
         // Retrieve a face normal from A
-        let n = A.m_normals[i];
+        let n = A.normals[i];
+        let v = A.points[i];
         let nw = _M2.mul(A.u, n);
         // Transform face normal into B's model space
         let buT = B.u.transpose();
@@ -170,9 +165,8 @@
         let s = B.getSupport(_M.vecFlip(n));
         // Retrieve vertex on face from A, transform into
         // B's model space
-        let v = A.m_vertices[i];
         v = _M.vecAdd(_M2.mul(A.u,v),A.body.position);
-        v = _M.vecSub(v,B.body.position);
+        _M.vecSubSelf(v,B.body.position);
         v = _M2.mul(buT,v);
         // Compute penetration distance (in B's model space)
         let d = _M.vecDot(n, _M.vecSub(s,v ));
@@ -188,25 +182,25 @@
      * @private
      * @function
      */
-    function _findIncidentFace(RefPoly, IncPoly, referenceIndex){
-      let referenceNormal = RefPoly.m_normals[referenceIndex];
+    function _findIncidentFace(RefPoly, IncPoly, refIndex){
+      let refNormal = RefPoly.normals[refIndex];
       // Calculate normal in incident's frame of reference
-      referenceNormal = _M2.mul(RefPoly.u, referenceNormal); // To world space
-      referenceNormal = _M2.mul(IncPoly.u.transpose(),referenceNormal); // To incident's model space
+      refNormal = _M2.mul(RefPoly.u, refNormal); // To world space
+      refNormal = _M2.mul(IncPoly.u.transpose(),refNormal); // To incident's model space
       // Find most anti-normal face on incident polygon
       let incidentFace = 0;
       let minDot = Infinity;
-      for(let dot,i = 0; i < IncPoly.m_vertexCount; ++i){
-        dot = _M.vecDot(referenceNormal, IncPoly.m_normals[i]);
+      for(let dot,i = 0; i < IncPoly.points.length; ++i){
+        dot = _M.vecDot(refNormal, IncPoly.normals[i]);
         if(dot < minDot){
           minDot = dot;
           incidentFace = i;
         }
       }
       // Assign face vertices for incidentFace
-      let v0= _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.m_vertices[incidentFace]), IncPoly.body.position);
-      incidentFace = incidentFace+1 >= IncPoly.m_vertexCount ? 0 : incidentFace+1;
-      let v1 = _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.m_vertices[incidentFace]), IncPoly.body.position);
+      let v0= _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
+      incidentFace = (incidentFace+1) % IncPoly.points.length;
+      let v1 = _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
       return [v0,v1]
     }
     /**
@@ -253,24 +247,24 @@
       if(penetrationB >= 0.0)
         return;
 
-      let referenceIndex;
-      let flip; // Always point from a to b
       let RefPoly; // Reference
       let IncPoly; // Incident
+      let refIndex;
+      let flip; // Always point from a to b
       // Determine which shape contains reference face
       if(_M.biasGreater(penetrationA, penetrationB)){
         RefPoly = A;
         IncPoly = B;
-        referenceIndex = faceA;
+        refIndex = faceA;
         flip = false;
       }else{
         RefPoly = B;
         IncPoly = A;
-        referenceIndex = faceB;
+        refIndex = faceB;
         flip = true;
       }
       // World space incident face
-      let incidentFace= _findIncidentFace(RefPoly, IncPoly, referenceIndex);
+      let incidentFace= _findIncidentFace(RefPoly, IncPoly, refIndex);
       //        y
       //        ^  ->n       ^
       //      +---c ------posPlane--
@@ -284,9 +278,9 @@
       //  c : clipped point
       //  n : incident normal
       // Setup reference face vertices
-      let v1 = RefPoly.m_vertices[referenceIndex];
-      referenceIndex = referenceIndex+1 === RefPoly.m_vertexCount ? 0 : referenceIndex+1;
-      let v2 = RefPoly.m_vertices[referenceIndex];
+      let v1 = RefPoly.points[refIndex];
+      refIndex = (refIndex+1) % RefPoly.points.length;
+      let v2 = RefPoly.points[refIndex];
       // Transform vertices to world space
       v1 = _M.vecAdd(_M2.mul(RefPoly.u,v1),RefPoly.body.position);
       v2 = _M.vecAdd(_M2.mul(RefPoly.u,v2),RefPoly.body.position);
@@ -327,7 +321,7 @@
       m.contact_count = cp;
     };
 
-    return IE;
+    return _.inject(IE, _C)
   };
 
 })(this);

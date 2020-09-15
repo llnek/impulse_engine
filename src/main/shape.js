@@ -100,9 +100,8 @@
     class PolygonShape extends Shape{
       constructor(){
         super();
-        this.m_vertices= new Array(MaxPolyVertexCount);
-        this.m_normals= new Array(MaxPolyVertexCount);
-        this.m_vertexCount=0;
+        this.points=[];
+        this.normals =[];
       }
       getAABB(){
         let cps=this._calcPoints();
@@ -126,11 +125,10 @@
       clone(){
         let poly = new PolygonShape();
         poly.u= this.u.clone();
-        for(let i = 0; i < this.m_vertexCount; ++i){
-          poly.m_vertices[i]=_M.vecClone(this.m_vertices[i]);
-          poly.m_normals[i]=_M.vecClone(this.m_normals[i]);
+        for(let i = 0; i < this.points.length; ++i){
+          poly.points[i]=_M.vecClone(this.points[i]);
+          poly.normals[i]=_M.vecClone(this.normals[i]);
         }
-        poly.m_vertexCount = this.m_vertexCount;
         return poly;
       }
       computeMass(density){
@@ -139,11 +137,12 @@
         let area = 0.0;
         let I = 0.0;
         const k_inv3 = 1.0/3.0;
-        for(let i1 = 0; i1 < this.m_vertexCount; ++i1){
+        const len=this.points.length;
+        for(let i1 = 0; i1 < len; ++i1){
           // Triangle vertices, third vertex implied as (0, 0)
-          let p1= this.m_vertices[i1];
-          let i2 = (i1+1)%this.m_vertexCount;
-          let p2= this.m_vertices[i2];
+          let p1= this.points[i1];
+          let i2 = (i1+1)%len;
+          let p2= this.points[i2];
           let D = _M.vec2Cross(p1, p2);
           let triangleArea = 0.5 * D;
           area += triangleArea;
@@ -159,8 +158,8 @@
         // Translate vertices to centroid (make the centroid (0, 0)
         // for the polygon in model space)
         // Not really necessary, but I like doing this anyway
-        for(let i = 0; i < this.m_vertexCount; ++i)
-          this.m_vertices[i] = _M.vecSub(this.m_vertices[i],c);
+        for(let i=0; i < len; ++i)
+          _M.vecSubSelf(this.points[i],c);
 
         this.body.m = density * area;
         this.body.im = this.body.m ? 1.0/this.body.m : 0.0;
@@ -174,10 +173,8 @@
       }
       _calcPoints(){
         let cps=[];
-        for(let i=0;i<this.m_vertexCount;++i){
-          //Vec2 v = body.position + u * m_vertices[i]
-          cps.push(_M.vecAdd(this.body.position,_M2.mul(this.u,this.m_vertices[i])));
-        }
+        for(let i=0;i<this.points.length;++i)
+          cps.push(_M.vecAdd(this.body.position,_M2.mul(this.u,this.points[i])));
         return cps;
       }
       draw(ctx){
@@ -189,15 +186,16 @@
       getType(){ return IE.ePoly }
       // Half width and half height
       setBox(hw,hh){
-        this.m_vertexCount = 4;
-        this.m_vertices[0]= _M.V2( -hw, -hh );
-        this.m_vertices[1]= _M.V2(  hw, -hh );
-        this.m_vertices[2]= _M.V2(  hw,  hh );
-        this.m_vertices[3]= _M.V2( -hw,  hh );
-        this.m_normals[0]= _M.V2( 0.0, -1.0);
-        this.m_normals[1]= _M.V2(  1.0,   0.0);
-        this.m_normals[2]= _M.V2(  0.0,   1.0);
-        this.m_normals[3]= _M.V2( -1.0,   0.0);
+        this.normals.length=0;
+        this.points.length=0;
+        this.points[0]= _M.V2( -hw, -hh );
+        this.points[1]= _M.V2(  hw, -hh );
+        this.points[2]= _M.V2(  hw,  hh );
+        this.points[3]= _M.V2( -hw,  hh );
+        this.normals[0]= _M.V2( 0.0, -1.0);
+        this.normals[1]= _M.V2(  1.0,   0.0);
+        this.normals[2]= _M.V2(  0.0,   1.0);
+        this.normals[3]= _M.V2( -1.0,   0.0);
         return this;
       }
       set(vertices){
@@ -253,22 +251,22 @@
           indexHull = nextHullIndex;
           // Conclude algorithm upon wrap-around
           if(nextHullIndex === rightMost){
-            this.m_vertexCount = outCount;
             break;
           }
         }
+        this.normals.length=0;
+        this.points.length=0;
         // Copy vertices into shape's vertices
-        for(let i = 0; i < this.m_vertexCount; ++i)
-          this.m_vertices[i]= vertices[hull[i]].slice();
+        for(let i = 0; i < outCount; ++i)
+          this.points[i]= vertices[hull[i]].slice();
         // Compute face normals
-        for(let i1 = 0; i1 < this.m_vertexCount; ++i1){
-          let i2 = (i1+1)%this.m_vertexCount;
-          let face = _M.vecSub(this.m_vertices[i2], this.m_vertices[i1]);
+        for(let i1 = 0; i1 < outCount; ++i1){
+          let i2 = (i1+1)%outCount;
+          let face = _M.vecSub(this.points[i2], this.points[i1]);
           // Ensure no zero-length edges, because that's bad
           _.assert(_M.vecLen2(face) > _M.EPSILON * _M.EPSILON);
           // Calculate normal with 2D cross product between vector and scalar
-          this.m_normals[i1]= _M.V2(face[1], -face[0]);
-          this.m_normals[i1]= _M.vecUnit(this.m_normals[i1]);
+          this.normals[i1]= _M.vecUnit(_M.V2(face[1], -face[0]));
         }
         return this;
       }
@@ -276,21 +274,19 @@
       getSupport(dir){
         let bestProjection = -Infinity;
         let bestVertex;
-        for(let i = 0; i < this.m_vertexCount; ++i){
-          let v = this.m_vertices[i];
-          let projection = _M.vecDot(v, dir);
-          if(projection > bestProjection){
+        for(let p,v,i = 0; i < this.points.length; ++i){
+          v = this.points[i];
+          p= _M.vecDot(v, dir);
+          if(p > bestProjection){
             bestVertex = v;
-            bestProjection = projection;
+            bestProjection = p;
           }
         }
         return bestVertex;
       }
     }
 
-    IE.Polygon=PolygonShape;
-    IE.Circle=Circle;
-    return IE;
+    return _.inject(IE, { Circle: Circle, Polygon: PolygonShape })
   };
 
 })(this);
