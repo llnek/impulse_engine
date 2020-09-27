@@ -27,6 +27,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.manifold"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _= Core.u;
     /**
      * @public
@@ -37,8 +38,8 @@
         this.A=a;
         this.B=b;
         this.penetration=0; // Depth of penetration from collision
-        this.normal=_M.V2(); // From A to B
-        this.contacts=[_M.V2(),_M.V2()]; // Points of contact during collision
+        this.normal=_V.V2(); // From A to B
+        this.contacts=[_V.V2(),_V.V2()]; // Points of contact during collision
         this.contact_count=0; // Number of contacts that occured during collision
         this.e=0;               // Mixed restitution
         this.df=0;              // Mixed dynamic friction
@@ -56,15 +57,15 @@
         this.df = Math.sqrt(this.A.dynamicFriction * this.B.dynamicFriction);
         for(let i = 0; i < this.contact_count; ++i){
           // Calculate radii from COM to contact
-          let ra = _M.vecSub(this.contacts[i], this.A.position);
-          let rb = _M.vecSub(this.contacts[i], this.B.position);
-          let rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv= _M.vecSub(_M.vecSub(rv,this.A.velocity),
-                        _M.vec2Cross(this.A.angularVelocity, ra));
+          let ra = _V.vecSub(this.contacts[i], this.A.position);
+          let rb = _V.vecSub(this.contacts[i], this.B.position);
+          let rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv= _V.vecSub(_V.vecSub(rv,this.A.velocity),
+                        _V.vec2Cross(this.A.angularVelocity, ra));
           // Determine if we should perform a resting collision or not
           // The idea is if the only thing moving this object is gravity,
           // then the collision should be performed without any restitution
-          if(_M.vecLen2(rv) < _M.vecLen2(_M.vecMul(IE.gravity,IE.dt)) + _M.EPSILON)
+          if(_V.vecLen2(rv) < _V.vecLen2(_V.vecMul(IE.gravity,IE.dt)) + _M.EPSILON)
             this.e = 0.0;
         }
         return this;
@@ -77,19 +78,19 @@
         }
         for(let i = 0; i < this.contact_count; ++i){
           // Calculate radii from COM to contact
-          let ra = _M.vecSub(this.contacts[i], this.A.position);
-          let rb = _M.vecSub(this.contacts[i], this.B.position);
+          let ra = _V.vecSub(this.contacts[i], this.A.position);
+          let rb = _V.vecSub(this.contacts[i], this.B.position);
           // Relative velocity
-          let rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv= _M.vecSub(_M.vecSub(rv, this.A.velocity),
-                        _M.vec2Cross(this.A.angularVelocity, ra));
+          let rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv= _V.vecSub(_V.vecSub(rv, this.A.velocity),
+                        _V.vec2Cross(this.A.angularVelocity, ra));
           // Relative velocity along the normal
-          let contactVel = _M.vecDot(rv, this.normal);
+          let contactVel = _V.vecDot(rv, this.normal);
           // Do not resolve if velocities are separating
           if(contactVel > 0)
             return this;
-          let raCrossN = _M.vec2Cross(ra, this.normal);
-          let rbCrossN = _M.vec2Cross(rb, this.normal);
+          let raCrossN = _V.vec2Cross(ra, this.normal);
+          let rbCrossN = _V.vec2Cross(rb, this.normal);
           let invMassSum = this.A.im + this.B.im + (raCrossN*raCrossN) *
                            this.A.iI + (rbCrossN*rbCrossN) * this.B.iI;
           // Calculate impulse scalar
@@ -97,17 +98,17 @@
           j /= invMassSum;
           j /= this.contact_count;
           // Apply impulse
-          let impulse = _M.vecMul(this.normal,j);
-          this.A.applyImpulse(_M.vecFlip(impulse), ra);
+          let impulse = _V.vecMul(this.normal,j);
+          this.A.applyImpulse(_V.vecFlip(impulse), ra);
           this.B.applyImpulse(impulse, rb);
           // Friction impulse
-          rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv = _M.vecSub(_M.vecSub(rv, this.A.velocity),
-                         _M.vec2Cross(this.A.angularVelocity, ra));
-          let t = _M.vecSub(rv,_M.vecMul(this.normal,_M.vecDot(rv, this.normal)));
-          t = _M.vecUnit(t);
+          rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv = _V.vecSub(_V.vecSub(rv, this.A.velocity),
+                         _V.vec2Cross(this.A.angularVelocity, ra));
+          let t = _V.vecSub(rv,_V.vecMul(this.normal,_V.vecDot(rv, this.normal)));
+          t = _V.vecUnit(t);
           // j tangent magnitude
-          let jt = -_M.vecDot(rv, t);
+          let jt = -_V.vecDot(rv, t);
           jt /= invMassSum;
           jt /= this.contact_count;
           // Don't apply tiny friction impulses
@@ -116,11 +117,11 @@
           // Coulumb's law
           let tangentImpulse;
           if(Math.abs(jt) < j * this.sf)
-            tangentImpulse = _M.vecMul(t, jt);
+            tangentImpulse = _V.vecMul(t, jt);
           else
-            tangentImpulse = _M.vecMul(t, -j * this.df);
+            tangentImpulse = _V.vecMul(t, -j * this.df);
           // Apply friction impulse
-          this.A.applyImpulse(_M.vecFlip(tangentImpulse), ra);
+          this.A.applyImpulse(_V.vecFlip(tangentImpulse), ra);
           this.B.applyImpulse(tangentImpulse, rb);
         }
         return this;
@@ -129,15 +130,15 @@
         const k_slop = 0.05; // Penetration allowance
         const percent = 0.4; // Penetration percentage to correct
         let correction =
-          _M.vecMul(this.normal,
+          _V.vecMul(this.normal,
           (Math.max(this.penetration-k_slop, 0.0)/(this.A.im+this.B.im)) * percent);
-        _M.vecSubSelf(this.A.position,_M.vecMul(correction, this.A.im));
-        _M.vecAddSelf(this.B.position,_M.vecMul(correction, this.B.im));
+        _V.vecSubSelf(this.A.position,_V.vecMul(correction, this.A.im));
+        _V.vecAddSelf(this.B.position,_V.vecMul(correction, this.B.im));
         return this;
       }
       infiniteMassCorrection(){
-        _M.vecCopy(this.A.velocity,0, 0);
-        _M.vecCopy(this.B.velocity,0, 0);
+        _V.vecCopy(this.A.velocity,0, 0);
+        _V.vecCopy(this.B.velocity,0, 0);
         return this;
       }
     }

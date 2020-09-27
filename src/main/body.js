@@ -27,6 +27,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.body"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _= Core.u;
     /**
      * @public
@@ -36,12 +37,12 @@
       constructor(shape_, x, y){
         this.shape= shape_;
         this.shape.body = this;
-        this.position= _M.V2(x,y);
-        this.velocity= _M.V2();
+        this.position= _V.V2(x,y);
+        this.velocity= _V.V2();
         this.angularVelocity = 0;
         this.torque = 0;
         this.rgb = "blue";
-        this.force= _M.V2();
+        this.force= _V.V2();
         this.staticFriction = 0.5;
         this.dynamicFriction = 0.3;
         this.restitution = 0.2;
@@ -51,12 +52,12 @@
         this.shape.initialize();
       }
       applyForce(f){
-        this.force= _M.vecAdd(this.force,f);
+        this.force= _V.vecAdd(this.force,f);
         return this;
       }
       applyImpulse(impulse, contactVector){
-        _M.vecAddSelf(this.velocity, _M.vecMul(impulse,this.im));
-        this.angularVelocity += this.iI * _M.vec2Cross(contactVector, impulse);
+        _V.vecAddSelf(this.velocity, _V.vecMul(impulse,this.im));
+        this.angularVelocity += this.iI * _V.vec2Cross(contactVector, impulse);
         return this;
       }
       setStatic(){

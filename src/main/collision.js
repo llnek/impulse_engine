@@ -27,6 +27,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.collision"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _M2=IE.M2;
     const _=Core.u;
     const _C={};
@@ -49,8 +50,8 @@
       let A = a.shape;
       let B = b.shape;
       // Calculate translational vector, which is normal
-      let normal = _M.vecSub(b.position, a.position);
-      let dist_sqr = _M.vecLen2(normal);
+      let normal = _V.vecSub(b.position, a.position);
+      let dist_sqr = _V.vecLen2(normal);
       let radius = A.radius + B.radius;
       // Not in contact
       if(dist_sqr >= radius*radius){
@@ -61,13 +62,13 @@
       m.contact_count = 1;
       if(_M.fuzzyZero(distance)){
         m.penetration = A.radius;
-        m.normal = _M.V2(1, 0);
-        _M.vecSet(m.contacts[0], a.position);
+        m.normal = _V.V2(1, 0);
+        _V.vecSet(m.contacts[0], a.position);
       }else{
         m.penetration = radius - distance;
-        m.normal = _M.vecDiv(normal,distance);
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecDiv(normal,distance);
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
       }
     };
     /**
@@ -79,13 +80,13 @@
       let B = b.shape;
       m.contact_count = 0;
       // Transform circle center to Polygon model space
-      let center = _M2.mul(B.u.transpose(), _M.vecSub(a.position,b.position));
+      let center = _M2.mul(B.u.transpose(), _V.vecSub(a.position,b.position));
       // Find edge with minimum penetration
       // Exact concept as using support points in Polygon vs Polygon
       let separation = -Infinity;
       let faceNormal = 0;
       for(let i=0; i < B.points.length; ++i){
-        let s = _M.vecDot(B.normals[i], _M.vecSub(center,B.points[i]));
+        let s = _V.vecDot(B.normals[i], _V.vecSub(center,B.points[i]));
         if(s > A.radius)
           return;
         if(s > separation){
@@ -100,41 +101,41 @@
       // Check to see if center is within polygon
       if(separation < IE.EPSILON){
         m.contact_count = 1;
-        m.normal = _M.vecFlip(_M2.mul(B.u,B.normals[faceNormal]));
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecFlip(_M2.mul(B.u,B.normals[faceNormal]));
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
         m.penetration = A.radius;
         return;
       }
       // Determine which voronoi region of the edge center of circle lies within
-      let dot1 = _M.vecDot(_M.vecSub(center,v1), _M.vecSub(v2,v1));
-      let dot2 = _M.vecDot(_M.vecSub(center,v2), _M.vecSub(v1,v2));
+      let dot1 = _V.vecDot(_V.vecSub(center,v1), _V.vecSub(v2,v1));
+      let dot2 = _V.vecDot(_V.vecSub(center,v2), _V.vecSub(v1,v2));
       m.penetration = A.radius - separation;
       // Closest to v1
       if(dot1 <= 0.0){
-        if(_M.vecDist2(center, v1) > A.radius*A.radius)
+        if(_V.vecDist2(center, v1) > A.radius*A.radius)
           return;
         m.contact_count = 1;
-        let n = _M.vecSub(v1,center);
-        m.normal = _M.vecUnit(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v1),b.position));
+        let n = _V.vecSub(v1,center);
+        m.normal = _V.vecUnit(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0], _V.vecAdd(_M2.mul(B.u,v1),b.position));
       }
       // Closest to v2
       else if(dot2 <= 0.0){
-        if(_M.vecDist2(center, v2) > A.radius*A.radius)
+        if(_V.vecDist2(center, v2) > A.radius*A.radius)
           return;
         m.contact_count = 1;
-        let n = _M.vecSub(v2,center);
-        m.normal = _M.vecUnit(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v2),b.position));
+        let n = _V.vecSub(v2,center);
+        m.normal = _V.vecUnit(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0], _V.vecAdd(_M2.mul(B.u,v2),b.position));
       }else{
         // Closest to face
         let n = B.normals[faceNormal];
-        if(_M.vecDot(_M.vecSub(center,v1), n) > A.radius)
+        if(_V.vecDot(_V.vecSub(center,v1), n) > A.radius)
           return;
-        m.normal = _M.vecFlip(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecFlip(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
         m.contact_count = 1;
       }
     };
@@ -144,7 +145,7 @@
      */
     IE.polygonCircle=function(m, a, b){
       this.circlePolygon(m, b, a);
-      _M.vecFlipSelf(m.normal);
+      _V.vecFlipSelf(m.normal);
     };
     /**
      * @private
@@ -162,14 +163,14 @@
         let buT = B.u.transpose();
         n = _M2.mul(buT,nw);
         // Retrieve support point from B along -n
-        let s = B.getSupport(_M.vecFlip(n));
+        let s = B.getSupport(_V.vecFlip(n));
         // Retrieve vertex on face from A, transform into
         // B's model space
-        v = _M.vecAdd(_M2.mul(A.u,v),A.body.position);
-        _M.vecSubSelf(v,B.body.position);
+        v = _V.vecAdd(_M2.mul(A.u,v),A.body.position);
+        _V.vecSubSelf(v,B.body.position);
         v = _M2.mul(buT,v);
         // Compute penetration distance (in B's model space)
-        let d = _M.vecDot(n, _M.vecSub(s,v ));
+        let d = _V.vecDot(n, _V.vecSub(s,v ));
         // Store greatest distance
         if(d > bestDistance){
           bestDistance = d;
@@ -191,16 +192,16 @@
       let incidentFace = 0;
       let minDot = Infinity;
       for(let dot,i = 0; i < IncPoly.points.length; ++i){
-        dot = _M.vecDot(refNormal, IncPoly.normals[i]);
+        dot = _V.vecDot(refNormal, IncPoly.normals[i]);
         if(dot < minDot){
           minDot = dot;
           incidentFace = i;
         }
       }
       // Assign face vertices for incidentFace
-      let v0= _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
+      let v0= _V.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
       incidentFace = (incidentFace+1) % IncPoly.points.length;
-      let v1 = _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
+      let v1 = _V.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
       return [v0,v1]
     }
     /**
@@ -212,8 +213,8 @@
       let sp = 0;
       // Retrieve distances from each endpoint to the line
       // d = ax + by - c
-      let d1 = _M.vecDot(n, face[0]) - c;
-      let d2 = _M.vecDot(n, face[1]) - c;
+      let d1 = _V.vecDot(n, face[0]) - c;
+      let d2 = _V.vecDot(n, face[1]) - c;
       // If negative (behind plane) clip
       if(d1 <= 0.0) out[sp++] = face[0];
       if(d2 <= 0.0) out[sp++] = face[1];
@@ -221,7 +222,7 @@
       if(d1*d2 < 0.0){ // less than to ignore -0.0f
         // Push interesection point
         let alpha = d1/(d1-d2);
-        out[sp] = _M.vecAdd(face[0],_M.vecMul(_M.vecSub(face[1],face[0]),alpha));
+        out[sp] = _V.vecAdd(face[0],_V.vecMul(_V.vecSub(face[1],face[0]),alpha));
         ++sp;
       }
       // Assign our new converted values
@@ -282,27 +283,27 @@
       refIndex = (refIndex+1) % RefPoly.points.length;
       let v2 = RefPoly.points[refIndex];
       // Transform vertices to world space
-      v1 = _M.vecAdd(_M2.mul(RefPoly.u,v1),RefPoly.body.position);
-      v2 = _M.vecAdd(_M2.mul(RefPoly.u,v2),RefPoly.body.position);
+      v1 = _V.vecAdd(_M2.mul(RefPoly.u,v1),RefPoly.body.position);
+      v2 = _V.vecAdd(_M2.mul(RefPoly.u,v2),RefPoly.body.position);
       // Calculate reference face side normal in world space
-      let sidePlaneNormal = _M.vecUnit(_M.vecSub(v2,v1));
+      let sidePlaneNormal = _V.vecUnit(_V.vecSub(v2,v1));
       // Orthogonalize
-      let refFaceNormal= _M.V2(sidePlaneNormal[1], -sidePlaneNormal[0]);
+      let refFaceNormal= _V.V2(sidePlaneNormal[1], -sidePlaneNormal[0]);
       // ax + by = c
       // c is distance from origin
-      let refC = _M.vecDot( refFaceNormal, v1 );
-      let negSide = -_M.vecDot( sidePlaneNormal, v1 );
-      let posSide =  _M.vecDot( sidePlaneNormal, v2 );
+      let refC = _V.vecDot( refFaceNormal, v1 );
+      let negSide = -_V.vecDot( sidePlaneNormal, v1 );
+      let posSide =  _V.vecDot( sidePlaneNormal, v2 );
       // Clip incident face to reference face side planes
-      if(_clip(_M.vecFlip(sidePlaneNormal), negSide, incidentFace) < 2)
+      if(_clip(_V.vecFlip(sidePlaneNormal), negSide, incidentFace) < 2)
         return; // Due to floating point error, possible to not have required points
       if(_clip(sidePlaneNormal, posSide, incidentFace ) < 2)
         return; // Due to floating point error, possible to not have required points
       // Flip
-      m.normal = flip ? _M.vecFlip(refFaceNormal) : refFaceNormal;
+      m.normal = flip ? _V.vecFlip(refFaceNormal) : refFaceNormal;
       // Keep points behind reference face
       let cp = 0; // clipped points behind reference face
-      let separation = _M.vecDot(refFaceNormal, incidentFace[0]) - refC;
+      let separation = _V.vecDot(refFaceNormal, incidentFace[0]) - refC;
       if(separation <= 0.0){
         m.contacts[cp] = incidentFace[0];
         m.penetration = -separation;
@@ -310,7 +311,7 @@
       }else{
         m.penetration = 0;
       }
-      separation = _M.vecDot(refFaceNormal, incidentFace[1]) - refC;
+      separation = _V.vecDot(refFaceNormal, incidentFace[1]) - refC;
       if(separation <= 0.0){
         m.contacts[cp] = incidentFace[1];
         m.penetration += -separation;

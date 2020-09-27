@@ -32,6 +32,7 @@
     const _M=global["io.czlab.mcfud.math"]();
     const _G=global["io.czlab.mcfud.gfx"]();
     const _2d=global["io.czlab.mcfud.geo2d"]();
+    const _V= global["io.czlab.mcfud.vec2"]();
     const _=Core.u;
     const is=Core.is;
     /**
@@ -60,10 +61,10 @@
                         Math.abs(this.m11))
       }
       axisX(){
-        return _M.V2(this.m00, this.m10)
+        return _V.V2(this.m00, this.m10)
       }
       axisY(){
-        return _M.V2(this.m01, this.m11)
+        return _V.V2(this.m01, this.m11)
       }
       transpose(){
         return new Mat2(this.m00, this.m10, this.m01, this.m11)
@@ -75,7 +76,7 @@
      */
     Mat2.mul=function(a,rhs){
       if(is.vec(rhs))
-        return _M.V2(a.m00 * rhs[0] + a.m01 * rhs[1],
+        return _V.V2(a.m00 * rhs[0] + a.m01 * rhs[1],
                      a.m10 * rhs[0] + a.m11 * rhs[1])
       else
         return new Mat2(a.m00 * rhs.m00 + a.m01 * rhs.m10,
@@ -87,7 +88,7 @@
       ePoly: 100, eCircle: 200,
       M2: Mat2,
       dt: 1 / 60.0,
-      gravity: _M.V2(0, 10 * _gravityScale)
+      gravity: _V.V2(0, 10 * _gravityScale)
     };
     global["io.czlab.impulse_engine.shape"](_XP,Core,_M);
     global["io.czlab.impulse_engine.body"](_XP,Core,_M);
@@ -134,6 +135,7 @@
     const _2d= global["io.czlab.mcfud.geo2d"]();
     const _G= global["io.czlab.mcfud.gfx"]();
     const MaxPolyVertexCount= 64;
+    const _V=_M.Vec2;
     const _M2=IE.M2;
     const _=Core.u;
     class Shape{
@@ -187,9 +189,9 @@
         ctx.save();
         ctx.strokeStyle=this.body.rgb;
         _G.drawCircle(ctx,this.body.position[0], this.body.position[1],this.radius);
-        let r=_M2.mul(this.u,_M.V2(1,0));
-        r=_M.vecMul(r,this.radius);
-        r = _M.vecAdd(r, this.body.position);
+        let r=_M2.mul(this.u,_V.V2(1,0));
+        r=_V.vecMul(r,this.radius);
+        r = _V.vecAdd(r, this.body.position);
         ctx.strokeStyle="green";
         _G.drawLine(ctx,this.body.position[0],this.body.position[1],r[0],r[1]);
         ctx.restore();
@@ -229,14 +231,14 @@
         let poly = new PolygonShape();
         poly.u= this.u.clone();
         for(let i = 0; i < this.points.length; ++i){
-          poly.points[i]=_M.vecClone(this.points[i]);
-          poly.normals[i]=_M.vecClone(this.normals[i]);
+          poly.points[i]=_V.vecClone(this.points[i]);
+          poly.normals[i]=_V.vecClone(this.normals[i]);
         }
         return poly;
       }
       computeMass(density){
         // Calculate centroid and moment of interia
-        let c= _M.V2(); // centroid
+        let c= _V.V2(); // centroid
         let area = 0.0;
         let I = 0.0;
         const k_inv3 = 1.0/3.0;
@@ -246,23 +248,23 @@
           let p1= this.points[i1];
           let i2 = (i1+1)%len;
           let p2= this.points[i2];
-          let D = _M.vec2Cross(p1, p2);
+          let D = _V.vec2Cross(p1, p2);
           let triangleArea = 0.5 * D;
           area += triangleArea;
           // Use area to weight the centroid average, not just vertex position
-          c = _M.vecAdd(c, _M.vecMul(_M.vecAdd(p1, p2),triangleArea *k_inv3))
+          c = _V.vecAdd(c, _V.vecMul(_V.vecAdd(p1, p2),triangleArea *k_inv3))
           let intx2 = p1[0] * p1[0] + p2[0] * p1[0] + p2[0] * p2[0];
           let inty2 = p1[1] * p1[1] + p2[1] * p1[1] + p2[1] * p2[1];
           I += (0.25 * k_inv3 * D) * (intx2 + inty2);
         }
 
-        c = _M.vecMul(c,1.0 / area);
+        c = _V.vecMul(c,1.0 / area);
 
         // Translate vertices to centroid (make the centroid (0, 0)
         // for the polygon in model space)
         // Not really necessary, but I like doing this anyway
         for(let i=0; i < len; ++i)
-          _M.vecSubSelf(this.points[i],c);
+          _V.vecSubSelf(this.points[i],c);
 
         this.body.m = density * area;
         this.body.im = this.body.m ? 1.0/this.body.m : 0.0;
@@ -277,7 +279,7 @@
       _calcPoints(){
         let cps=[];
         for(let i=0;i<this.points.length;++i)
-          cps.push(_M.vecAdd(this.body.position,_M2.mul(this.u,this.points[i])));
+          cps.push(_V.vecAdd(this.body.position,_M2.mul(this.u,this.points[i])));
         return cps;
       }
       draw(ctx){
@@ -291,14 +293,14 @@
       setBox(hw,hh){
         this.normals.length=0;
         this.points.length=0;
-        this.points[0]= _M.V2( -hw, -hh );
-        this.points[1]= _M.V2(  hw, -hh );
-        this.points[2]= _M.V2(  hw,  hh );
-        this.points[3]= _M.V2( -hw,  hh );
-        this.normals[0]= _M.V2( 0.0, -1.0);
-        this.normals[1]= _M.V2(  1.0,   0.0);
-        this.normals[2]= _M.V2(  0.0,   1.0);
-        this.normals[3]= _M.V2( -1.0,   0.0);
+        this.points[0]= _V.V2( -hw, -hh );
+        this.points[1]= _V.V2(  hw, -hh );
+        this.points[2]= _V.V2(  hw,  hh );
+        this.points[3]= _V.V2( -hw,  hh );
+        this.normals[0]= _V.V2( 0.0, -1.0);
+        this.normals[1]= _V.V2(  1.0,   0.0);
+        this.normals[2]= _V.V2(  0.0,   1.0);
+        this.normals[3]= _V.V2( -1.0,   0.0);
         return this;
       }
       set(vertices){
@@ -340,14 +342,14 @@
             // Record each counter clockwise third vertex and add
             // to the output hull
             // See : http://www.oocities.org/pcgpe/math2d.html
-            let e1 = _M.vecSub(vertices[nextHullIndex], vertices[hull[outCount]]);
-            let e2 = _M.vecSub(vertices[i], vertices[hull[outCount]]);
-            let c = _M.vec2Cross( e1, e2 );
+            let e1 = _V.vecSub(vertices[nextHullIndex], vertices[hull[outCount]]);
+            let e2 = _V.vecSub(vertices[i], vertices[hull[outCount]]);
+            let c = _V.vec2Cross( e1, e2 );
             if(c < 0.0)
               nextHullIndex = i;
             // Cross product is zero then e vectors are on same line
             // therefor want to record vertex farthest along that line
-            if(_M.fuzzyZero(c) && _M.vecLen2(e2) > _M.vecLen2(e1))
+            if(_M.fuzzyZero(c) && _V.vecLen2(e2) > _V.vecLen2(e1))
               nextHullIndex = i;
           }
           ++outCount;
@@ -365,11 +367,11 @@
         // Compute face normals
         for(let i1 = 0; i1 < outCount; ++i1){
           let i2 = (i1+1)%outCount;
-          let face = _M.vecSub(this.points[i2], this.points[i1]);
+          let face = _V.vecSub(this.points[i2], this.points[i1]);
           // Ensure no zero-length edges, because that's bad
-          _.assert(_M.vecLen2(face) > _M.EPSILON * _M.EPSILON);
+          _.assert(_V.vecLen2(face) > _M.EPSILON * _M.EPSILON);
           // Calculate normal with 2D cross product between vector and scalar
-          this.normals[i1]= _M.vecUnit(_M.V2(face[1], -face[0]));
+          this.normals[i1]= _V.vecUnit(_V.V2(face[1], -face[0]));
         }
         return this;
       }
@@ -379,7 +381,7 @@
         let bestVertex;
         for(let p,v,i = 0; i < this.points.length; ++i){
           v = this.points[i];
-          p= _M.vecDot(v, dir);
+          p= _V.vecDot(v, dir);
           if(p > bestProjection){
             bestVertex = v;
             bestProjection = p;
@@ -424,6 +426,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.body"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _= Core.u;
     /**
      * @public
@@ -433,12 +436,12 @@
       constructor(shape_, x, y){
         this.shape= shape_;
         this.shape.body = this;
-        this.position= _M.V2(x,y);
-        this.velocity= _M.V2();
+        this.position= _V.V2(x,y);
+        this.velocity= _V.V2();
         this.angularVelocity = 0;
         this.torque = 0;
         this.rgb = "blue";
-        this.force= _M.V2();
+        this.force= _V.V2();
         this.staticFriction = 0.5;
         this.dynamicFriction = 0.3;
         this.restitution = 0.2;
@@ -448,12 +451,12 @@
         this.shape.initialize();
       }
       applyForce(f){
-        this.force= _M.vecAdd(this.force,f);
+        this.force= _V.vecAdd(this.force,f);
         return this;
       }
       applyImpulse(impulse, contactVector){
-        _M.vecAddSelf(this.velocity, _M.vecMul(impulse,this.im));
-        this.angularVelocity += this.iI * _M.vec2Cross(contactVector, impulse);
+        _V.vecAddSelf(this.velocity, _V.vecMul(impulse,this.im));
+        this.angularVelocity += this.iI * _V.vec2Cross(contactVector, impulse);
         return this;
       }
       setStatic(){
@@ -505,6 +508,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.manifold"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _= Core.u;
     /**
      * @public
@@ -515,8 +519,8 @@
         this.A=a;
         this.B=b;
         this.penetration=0; // Depth of penetration from collision
-        this.normal=_M.V2(); // From A to B
-        this.contacts=[_M.V2(),_M.V2()]; // Points of contact during collision
+        this.normal=_V.V2(); // From A to B
+        this.contacts=[_V.V2(),_V.V2()]; // Points of contact during collision
         this.contact_count=0; // Number of contacts that occured during collision
         this.e=0;               // Mixed restitution
         this.df=0;              // Mixed dynamic friction
@@ -534,15 +538,15 @@
         this.df = Math.sqrt(this.A.dynamicFriction * this.B.dynamicFriction);
         for(let i = 0; i < this.contact_count; ++i){
           // Calculate radii from COM to contact
-          let ra = _M.vecSub(this.contacts[i], this.A.position);
-          let rb = _M.vecSub(this.contacts[i], this.B.position);
-          let rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv= _M.vecSub(_M.vecSub(rv,this.A.velocity),
-                        _M.vec2Cross(this.A.angularVelocity, ra));
+          let ra = _V.vecSub(this.contacts[i], this.A.position);
+          let rb = _V.vecSub(this.contacts[i], this.B.position);
+          let rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv= _V.vecSub(_V.vecSub(rv,this.A.velocity),
+                        _V.vec2Cross(this.A.angularVelocity, ra));
           // Determine if we should perform a resting collision or not
           // The idea is if the only thing moving this object is gravity,
           // then the collision should be performed without any restitution
-          if(_M.vecLen2(rv) < _M.vecLen2(_M.vecMul(IE.gravity,IE.dt)) + _M.EPSILON)
+          if(_V.vecLen2(rv) < _V.vecLen2(_V.vecMul(IE.gravity,IE.dt)) + _M.EPSILON)
             this.e = 0.0;
         }
         return this;
@@ -555,19 +559,19 @@
         }
         for(let i = 0; i < this.contact_count; ++i){
           // Calculate radii from COM to contact
-          let ra = _M.vecSub(this.contacts[i], this.A.position);
-          let rb = _M.vecSub(this.contacts[i], this.B.position);
+          let ra = _V.vecSub(this.contacts[i], this.A.position);
+          let rb = _V.vecSub(this.contacts[i], this.B.position);
           // Relative velocity
-          let rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv= _M.vecSub(_M.vecSub(rv, this.A.velocity),
-                        _M.vec2Cross(this.A.angularVelocity, ra));
+          let rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv= _V.vecSub(_V.vecSub(rv, this.A.velocity),
+                        _V.vec2Cross(this.A.angularVelocity, ra));
           // Relative velocity along the normal
-          let contactVel = _M.vecDot(rv, this.normal);
+          let contactVel = _V.vecDot(rv, this.normal);
           // Do not resolve if velocities are separating
           if(contactVel > 0)
             return this;
-          let raCrossN = _M.vec2Cross(ra, this.normal);
-          let rbCrossN = _M.vec2Cross(rb, this.normal);
+          let raCrossN = _V.vec2Cross(ra, this.normal);
+          let rbCrossN = _V.vec2Cross(rb, this.normal);
           let invMassSum = this.A.im + this.B.im + (raCrossN*raCrossN) *
                            this.A.iI + (rbCrossN*rbCrossN) * this.B.iI;
           // Calculate impulse scalar
@@ -575,17 +579,17 @@
           j /= invMassSum;
           j /= this.contact_count;
           // Apply impulse
-          let impulse = _M.vecMul(this.normal,j);
-          this.A.applyImpulse(_M.vecFlip(impulse), ra);
+          let impulse = _V.vecMul(this.normal,j);
+          this.A.applyImpulse(_V.vecFlip(impulse), ra);
           this.B.applyImpulse(impulse, rb);
           // Friction impulse
-          rv = _M.vecAdd(this.B.velocity,_M.vec2Cross(this.B.angularVelocity, rb));
-          rv = _M.vecSub(_M.vecSub(rv, this.A.velocity),
-                         _M.vec2Cross(this.A.angularVelocity, ra));
-          let t = _M.vecSub(rv,_M.vecMul(this.normal,_M.vecDot(rv, this.normal)));
-          t = _M.vecUnit(t);
+          rv = _V.vecAdd(this.B.velocity,_V.vec2Cross(this.B.angularVelocity, rb));
+          rv = _V.vecSub(_V.vecSub(rv, this.A.velocity),
+                         _V.vec2Cross(this.A.angularVelocity, ra));
+          let t = _V.vecSub(rv,_V.vecMul(this.normal,_V.vecDot(rv, this.normal)));
+          t = _V.vecUnit(t);
           // j tangent magnitude
-          let jt = -_M.vecDot(rv, t);
+          let jt = -_V.vecDot(rv, t);
           jt /= invMassSum;
           jt /= this.contact_count;
           // Don't apply tiny friction impulses
@@ -594,11 +598,11 @@
           // Coulumb's law
           let tangentImpulse;
           if(Math.abs(jt) < j * this.sf)
-            tangentImpulse = _M.vecMul(t, jt);
+            tangentImpulse = _V.vecMul(t, jt);
           else
-            tangentImpulse = _M.vecMul(t, -j * this.df);
+            tangentImpulse = _V.vecMul(t, -j * this.df);
           // Apply friction impulse
-          this.A.applyImpulse(_M.vecFlip(tangentImpulse), ra);
+          this.A.applyImpulse(_V.vecFlip(tangentImpulse), ra);
           this.B.applyImpulse(tangentImpulse, rb);
         }
         return this;
@@ -607,15 +611,15 @@
         const k_slop = 0.05; // Penetration allowance
         const percent = 0.4; // Penetration percentage to correct
         let correction =
-          _M.vecMul(this.normal,
+          _V.vecMul(this.normal,
           (Math.max(this.penetration-k_slop, 0.0)/(this.A.im+this.B.im)) * percent);
-        _M.vecSubSelf(this.A.position,_M.vecMul(correction, this.A.im));
-        _M.vecAddSelf(this.B.position,_M.vecMul(correction, this.B.im));
+        _V.vecSubSelf(this.A.position,_V.vecMul(correction, this.A.im));
+        _V.vecAddSelf(this.B.position,_V.vecMul(correction, this.B.im));
         return this;
       }
       infiniteMassCorrection(){
-        _M.vecCopy(this.A.velocity,0, 0);
-        _M.vecCopy(this.B.velocity,0, 0);
+        _V.vecCopy(this.A.velocity,0, 0);
+        _V.vecCopy(this.B.velocity,0, 0);
         return this;
       }
     }
@@ -655,6 +659,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.collision"]=function(IE,Core,_M){
+    const _V=_M.Vec2;
     const _M2=IE.M2;
     const _=Core.u;
     const _C={};
@@ -677,8 +682,8 @@
       let A = a.shape;
       let B = b.shape;
       // Calculate translational vector, which is normal
-      let normal = _M.vecSub(b.position, a.position);
-      let dist_sqr = _M.vecLen2(normal);
+      let normal = _V.vecSub(b.position, a.position);
+      let dist_sqr = _V.vecLen2(normal);
       let radius = A.radius + B.radius;
       // Not in contact
       if(dist_sqr >= radius*radius){
@@ -689,13 +694,13 @@
       m.contact_count = 1;
       if(_M.fuzzyZero(distance)){
         m.penetration = A.radius;
-        m.normal = _M.V2(1, 0);
-        _M.vecSet(m.contacts[0], a.position);
+        m.normal = _V.V2(1, 0);
+        _V.vecSet(m.contacts[0], a.position);
       }else{
         m.penetration = radius - distance;
-        m.normal = _M.vecDiv(normal,distance);
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecDiv(normal,distance);
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
       }
     };
     /**
@@ -707,13 +712,13 @@
       let B = b.shape;
       m.contact_count = 0;
       // Transform circle center to Polygon model space
-      let center = _M2.mul(B.u.transpose(), _M.vecSub(a.position,b.position));
+      let center = _M2.mul(B.u.transpose(), _V.vecSub(a.position,b.position));
       // Find edge with minimum penetration
       // Exact concept as using support points in Polygon vs Polygon
       let separation = -Infinity;
       let faceNormal = 0;
       for(let i=0; i < B.points.length; ++i){
-        let s = _M.vecDot(B.normals[i], _M.vecSub(center,B.points[i]));
+        let s = _V.vecDot(B.normals[i], _V.vecSub(center,B.points[i]));
         if(s > A.radius)
           return;
         if(s > separation){
@@ -728,41 +733,41 @@
       // Check to see if center is within polygon
       if(separation < IE.EPSILON){
         m.contact_count = 1;
-        m.normal = _M.vecFlip(_M2.mul(B.u,B.normals[faceNormal]));
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecFlip(_M2.mul(B.u,B.normals[faceNormal]));
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
         m.penetration = A.radius;
         return;
       }
       // Determine which voronoi region of the edge center of circle lies within
-      let dot1 = _M.vecDot(_M.vecSub(center,v1), _M.vecSub(v2,v1));
-      let dot2 = _M.vecDot(_M.vecSub(center,v2), _M.vecSub(v1,v2));
+      let dot1 = _V.vecDot(_V.vecSub(center,v1), _V.vecSub(v2,v1));
+      let dot2 = _V.vecDot(_V.vecSub(center,v2), _V.vecSub(v1,v2));
       m.penetration = A.radius - separation;
       // Closest to v1
       if(dot1 <= 0.0){
-        if(_M.vecDist2(center, v1) > A.radius*A.radius)
+        if(_V.vecDist2(center, v1) > A.radius*A.radius)
           return;
         m.contact_count = 1;
-        let n = _M.vecSub(v1,center);
-        m.normal = _M.vecUnit(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v1),b.position));
+        let n = _V.vecSub(v1,center);
+        m.normal = _V.vecUnit(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0], _V.vecAdd(_M2.mul(B.u,v1),b.position));
       }
       // Closest to v2
       else if(dot2 <= 0.0){
-        if(_M.vecDist2(center, v2) > A.radius*A.radius)
+        if(_V.vecDist2(center, v2) > A.radius*A.radius)
           return;
         m.contact_count = 1;
-        let n = _M.vecSub(v2,center);
-        m.normal = _M.vecUnit(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0], _M.vecAdd(_M2.mul(B.u,v2),b.position));
+        let n = _V.vecSub(v2,center);
+        m.normal = _V.vecUnit(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0], _V.vecAdd(_M2.mul(B.u,v2),b.position));
       }else{
         // Closest to face
         let n = B.normals[faceNormal];
-        if(_M.vecDot(_M.vecSub(center,v1), n) > A.radius)
+        if(_V.vecDot(_V.vecSub(center,v1), n) > A.radius)
           return;
-        m.normal = _M.vecFlip(_M2.mul(B.u, n));
-        _M.vecSet(m.contacts[0],
-                  _M.vecAdd(_M.vecMul(m.normal,A.radius),a.position));
+        m.normal = _V.vecFlip(_M2.mul(B.u, n));
+        _V.vecSet(m.contacts[0],
+                  _V.vecAdd(_V.vecMul(m.normal,A.radius),a.position));
         m.contact_count = 1;
       }
     };
@@ -772,7 +777,7 @@
      */
     IE.polygonCircle=function(m, a, b){
       this.circlePolygon(m, b, a);
-      _M.vecFlipSelf(m.normal);
+      _V.vecFlipSelf(m.normal);
     };
     /**
      * @private
@@ -790,14 +795,14 @@
         let buT = B.u.transpose();
         n = _M2.mul(buT,nw);
         // Retrieve support point from B along -n
-        let s = B.getSupport(_M.vecFlip(n));
+        let s = B.getSupport(_V.vecFlip(n));
         // Retrieve vertex on face from A, transform into
         // B's model space
-        v = _M.vecAdd(_M2.mul(A.u,v),A.body.position);
-        _M.vecSubSelf(v,B.body.position);
+        v = _V.vecAdd(_M2.mul(A.u,v),A.body.position);
+        _V.vecSubSelf(v,B.body.position);
         v = _M2.mul(buT,v);
         // Compute penetration distance (in B's model space)
-        let d = _M.vecDot(n, _M.vecSub(s,v ));
+        let d = _V.vecDot(n, _V.vecSub(s,v ));
         // Store greatest distance
         if(d > bestDistance){
           bestDistance = d;
@@ -819,16 +824,16 @@
       let incidentFace = 0;
       let minDot = Infinity;
       for(let dot,i = 0; i < IncPoly.points.length; ++i){
-        dot = _M.vecDot(refNormal, IncPoly.normals[i]);
+        dot = _V.vecDot(refNormal, IncPoly.normals[i]);
         if(dot < minDot){
           minDot = dot;
           incidentFace = i;
         }
       }
       // Assign face vertices for incidentFace
-      let v0= _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
+      let v0= _V.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
       incidentFace = (incidentFace+1) % IncPoly.points.length;
-      let v1 = _M.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
+      let v1 = _V.vecAdd(_M2.mul(IncPoly.u,IncPoly.points[incidentFace]), IncPoly.body.position);
       return [v0,v1]
     }
     /**
@@ -840,8 +845,8 @@
       let sp = 0;
       // Retrieve distances from each endpoint to the line
       // d = ax + by - c
-      let d1 = _M.vecDot(n, face[0]) - c;
-      let d2 = _M.vecDot(n, face[1]) - c;
+      let d1 = _V.vecDot(n, face[0]) - c;
+      let d2 = _V.vecDot(n, face[1]) - c;
       // If negative (behind plane) clip
       if(d1 <= 0.0) out[sp++] = face[0];
       if(d2 <= 0.0) out[sp++] = face[1];
@@ -849,7 +854,7 @@
       if(d1*d2 < 0.0){ // less than to ignore -0.0f
         // Push interesection point
         let alpha = d1/(d1-d2);
-        out[sp] = _M.vecAdd(face[0],_M.vecMul(_M.vecSub(face[1],face[0]),alpha));
+        out[sp] = _V.vecAdd(face[0],_V.vecMul(_V.vecSub(face[1],face[0]),alpha));
         ++sp;
       }
       // Assign our new converted values
@@ -910,27 +915,27 @@
       refIndex = (refIndex+1) % RefPoly.points.length;
       let v2 = RefPoly.points[refIndex];
       // Transform vertices to world space
-      v1 = _M.vecAdd(_M2.mul(RefPoly.u,v1),RefPoly.body.position);
-      v2 = _M.vecAdd(_M2.mul(RefPoly.u,v2),RefPoly.body.position);
+      v1 = _V.vecAdd(_M2.mul(RefPoly.u,v1),RefPoly.body.position);
+      v2 = _V.vecAdd(_M2.mul(RefPoly.u,v2),RefPoly.body.position);
       // Calculate reference face side normal in world space
-      let sidePlaneNormal = _M.vecUnit(_M.vecSub(v2,v1));
+      let sidePlaneNormal = _V.vecUnit(_V.vecSub(v2,v1));
       // Orthogonalize
-      let refFaceNormal= _M.V2(sidePlaneNormal[1], -sidePlaneNormal[0]);
+      let refFaceNormal= _V.V2(sidePlaneNormal[1], -sidePlaneNormal[0]);
       // ax + by = c
       // c is distance from origin
-      let refC = _M.vecDot( refFaceNormal, v1 );
-      let negSide = -_M.vecDot( sidePlaneNormal, v1 );
-      let posSide =  _M.vecDot( sidePlaneNormal, v2 );
+      let refC = _V.vecDot( refFaceNormal, v1 );
+      let negSide = -_V.vecDot( sidePlaneNormal, v1 );
+      let posSide =  _V.vecDot( sidePlaneNormal, v2 );
       // Clip incident face to reference face side planes
-      if(_clip(_M.vecFlip(sidePlaneNormal), negSide, incidentFace) < 2)
+      if(_clip(_V.vecFlip(sidePlaneNormal), negSide, incidentFace) < 2)
         return; // Due to floating point error, possible to not have required points
       if(_clip(sidePlaneNormal, posSide, incidentFace ) < 2)
         return; // Due to floating point error, possible to not have required points
       // Flip
-      m.normal = flip ? _M.vecFlip(refFaceNormal) : refFaceNormal;
+      m.normal = flip ? _V.vecFlip(refFaceNormal) : refFaceNormal;
       // Keep points behind reference face
       let cp = 0; // clipped points behind reference face
-      let separation = _M.vecDot(refFaceNormal, incidentFace[0]) - refC;
+      let separation = _V.vecDot(refFaceNormal, incidentFace[0]) - refC;
       if(separation <= 0.0){
         m.contacts[cp] = incidentFace[0];
         m.penetration = -separation;
@@ -938,7 +943,7 @@
       }else{
         m.penetration = 0;
       }
-      separation = _M.vecDot(refFaceNormal, incidentFace[1]) - refC;
+      separation = _V.vecDot(refFaceNormal, incidentFace[1]) - refC;
       if(separation <= 0.0){
         m.contacts[cp] = incidentFace[1];
         m.penetration += -separation;
@@ -984,6 +989,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.scene"]=function(IE,Core,_M,_G,_2d){
+    const _V=_M.Vec2;
     const _=Core.u;
 
     // Acceleration
@@ -1003,8 +1009,8 @@
       if(_M.fuzzyZero(b.im))
         return;
       let dt2= dt/2.0;
-      _M.vecAddSelf(b.velocity,
-                    _M.vecMul(_M.vecAdd(_M.vecMul(b.force,b.im),IE.gravity),dt2));
+      _V.vecAddSelf(b.velocity,
+                    _V.vecMul(_V.vecAdd(_V.vecMul(b.force,b.im),IE.gravity),dt2));
       b.angularVelocity += b.torque * b.iI * dt2;
     }
     /**
@@ -1014,7 +1020,7 @@
     function _integrateVelocity(b, dt){
       if(_M.fuzzyZero(b.im))
         return;
-      _M.vecAddSelf(b.position,_M.vecMul(b.velocity,dt));
+      _V.vecAddSelf(b.position,_V.vecMul(b.velocity,dt));
       b.orient += b.angularVelocity * dt;
       b.setOrient(b.orient);
       _integrateForces(b, dt);
@@ -1057,7 +1063,7 @@
         this.bodies.forEach(b => _integrateVelocity(b, this.dt));
         this.contacts.forEach(c => c.positionalCorrection());
         this.bodies.forEach(b => {
-          _M.vecCopy(b.force, 0,0);
+          _V.vecCopy(b.force, 0,0);
           b.torque = 0;
         });
       }

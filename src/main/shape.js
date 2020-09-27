@@ -31,6 +31,7 @@
     const _2d= global["io.czlab.mcfud.geo2d"]();
     const _G= global["io.czlab.mcfud.gfx"]();
     const MaxPolyVertexCount= 64;
+    const _V=_M.Vec2;
     const _M2=IE.M2;
     const _=Core.u;
     class Shape{
@@ -84,9 +85,9 @@
         ctx.save();
         ctx.strokeStyle=this.body.rgb;
         _G.drawCircle(ctx,this.body.position[0], this.body.position[1],this.radius);
-        let r=_M2.mul(this.u,_M.V2(1,0));
-        r=_M.vecMul(r,this.radius);
-        r = _M.vecAdd(r, this.body.position);
+        let r=_M2.mul(this.u,_V.V2(1,0));
+        r=_V.vecMul(r,this.radius);
+        r = _V.vecAdd(r, this.body.position);
         ctx.strokeStyle="green";
         _G.drawLine(ctx,this.body.position[0],this.body.position[1],r[0],r[1]);
         ctx.restore();
@@ -126,14 +127,14 @@
         let poly = new PolygonShape();
         poly.u= this.u.clone();
         for(let i = 0; i < this.points.length; ++i){
-          poly.points[i]=_M.vecClone(this.points[i]);
-          poly.normals[i]=_M.vecClone(this.normals[i]);
+          poly.points[i]=_V.vecClone(this.points[i]);
+          poly.normals[i]=_V.vecClone(this.normals[i]);
         }
         return poly;
       }
       computeMass(density){
         // Calculate centroid and moment of interia
-        let c= _M.V2(); // centroid
+        let c= _V.V2(); // centroid
         let area = 0.0;
         let I = 0.0;
         const k_inv3 = 1.0/3.0;
@@ -143,23 +144,23 @@
           let p1= this.points[i1];
           let i2 = (i1+1)%len;
           let p2= this.points[i2];
-          let D = _M.vec2Cross(p1, p2);
+          let D = _V.vec2Cross(p1, p2);
           let triangleArea = 0.5 * D;
           area += triangleArea;
           // Use area to weight the centroid average, not just vertex position
-          c = _M.vecAdd(c, _M.vecMul(_M.vecAdd(p1, p2),triangleArea *k_inv3))
+          c = _V.vecAdd(c, _V.vecMul(_V.vecAdd(p1, p2),triangleArea *k_inv3))
           let intx2 = p1[0] * p1[0] + p2[0] * p1[0] + p2[0] * p2[0];
           let inty2 = p1[1] * p1[1] + p2[1] * p1[1] + p2[1] * p2[1];
           I += (0.25 * k_inv3 * D) * (intx2 + inty2);
         }
 
-        c = _M.vecMul(c,1.0 / area);
+        c = _V.vecMul(c,1.0 / area);
 
         // Translate vertices to centroid (make the centroid (0, 0)
         // for the polygon in model space)
         // Not really necessary, but I like doing this anyway
         for(let i=0; i < len; ++i)
-          _M.vecSubSelf(this.points[i],c);
+          _V.vecSubSelf(this.points[i],c);
 
         this.body.m = density * area;
         this.body.im = this.body.m ? 1.0/this.body.m : 0.0;
@@ -174,7 +175,7 @@
       _calcPoints(){
         let cps=[];
         for(let i=0;i<this.points.length;++i)
-          cps.push(_M.vecAdd(this.body.position,_M2.mul(this.u,this.points[i])));
+          cps.push(_V.vecAdd(this.body.position,_M2.mul(this.u,this.points[i])));
         return cps;
       }
       draw(ctx){
@@ -188,14 +189,14 @@
       setBox(hw,hh){
         this.normals.length=0;
         this.points.length=0;
-        this.points[0]= _M.V2( -hw, -hh );
-        this.points[1]= _M.V2(  hw, -hh );
-        this.points[2]= _M.V2(  hw,  hh );
-        this.points[3]= _M.V2( -hw,  hh );
-        this.normals[0]= _M.V2( 0.0, -1.0);
-        this.normals[1]= _M.V2(  1.0,   0.0);
-        this.normals[2]= _M.V2(  0.0,   1.0);
-        this.normals[3]= _M.V2( -1.0,   0.0);
+        this.points[0]= _V.V2( -hw, -hh );
+        this.points[1]= _V.V2(  hw, -hh );
+        this.points[2]= _V.V2(  hw,  hh );
+        this.points[3]= _V.V2( -hw,  hh );
+        this.normals[0]= _V.V2( 0.0, -1.0);
+        this.normals[1]= _V.V2(  1.0,   0.0);
+        this.normals[2]= _V.V2(  0.0,   1.0);
+        this.normals[3]= _V.V2( -1.0,   0.0);
         return this;
       }
       set(vertices){
@@ -237,14 +238,14 @@
             // Record each counter clockwise third vertex and add
             // to the output hull
             // See : http://www.oocities.org/pcgpe/math2d.html
-            let e1 = _M.vecSub(vertices[nextHullIndex], vertices[hull[outCount]]);
-            let e2 = _M.vecSub(vertices[i], vertices[hull[outCount]]);
-            let c = _M.vec2Cross( e1, e2 );
+            let e1 = _V.vecSub(vertices[nextHullIndex], vertices[hull[outCount]]);
+            let e2 = _V.vecSub(vertices[i], vertices[hull[outCount]]);
+            let c = _V.vec2Cross( e1, e2 );
             if(c < 0.0)
               nextHullIndex = i;
             // Cross product is zero then e vectors are on same line
             // therefor want to record vertex farthest along that line
-            if(_M.fuzzyZero(c) && _M.vecLen2(e2) > _M.vecLen2(e1))
+            if(_M.fuzzyZero(c) && _V.vecLen2(e2) > _V.vecLen2(e1))
               nextHullIndex = i;
           }
           ++outCount;
@@ -262,11 +263,11 @@
         // Compute face normals
         for(let i1 = 0; i1 < outCount; ++i1){
           let i2 = (i1+1)%outCount;
-          let face = _M.vecSub(this.points[i2], this.points[i1]);
+          let face = _V.vecSub(this.points[i2], this.points[i1]);
           // Ensure no zero-length edges, because that's bad
-          _.assert(_M.vecLen2(face) > _M.EPSILON * _M.EPSILON);
+          _.assert(_V.vecLen2(face) > _M.EPSILON * _M.EPSILON);
           // Calculate normal with 2D cross product between vector and scalar
-          this.normals[i1]= _M.vecUnit(_M.V2(face[1], -face[0]));
+          this.normals[i1]= _V.vecUnit(_V.V2(face[1], -face[0]));
         }
         return this;
       }
@@ -276,7 +277,7 @@
         let bestVertex;
         for(let p,v,i = 0; i < this.points.length; ++i){
           v = this.points[i];
-          p= _M.vecDot(v, dir);
+          p= _V.vecDot(v, dir);
           if(p > bestProjection){
             bestVertex = v;
             bestProjection = p;

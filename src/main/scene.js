@@ -27,6 +27,7 @@
    * @function
    */
   global["io.czlab.impulse_engine.scene"]=function(IE,Core,_M,_G,_2d){
+    const _V=_M.Vec2;
     const _=Core.u;
 
     // Acceleration
@@ -46,8 +47,8 @@
       if(_M.fuzzyZero(b.im))
         return;
       let dt2= dt/2.0;
-      _M.vecAddSelf(b.velocity,
-                    _M.vecMul(_M.vecAdd(_M.vecMul(b.force,b.im),IE.gravity),dt2));
+      _V.vecAddSelf(b.velocity,
+                    _V.vecMul(_V.vecAdd(_V.vecMul(b.force,b.im),IE.gravity),dt2));
       b.angularVelocity += b.torque * b.iI * dt2;
     }
     /**
@@ -57,7 +58,7 @@
     function _integrateVelocity(b, dt){
       if(_M.fuzzyZero(b.im))
         return;
-      _M.vecAddSelf(b.position,_M.vecMul(b.velocity,dt));
+      _V.vecAddSelf(b.position,_V.vecMul(b.velocity,dt));
       b.orient += b.angularVelocity * dt;
       b.setOrient(b.orient);
       _integrateForces(b, dt);
@@ -100,7 +101,7 @@
         this.bodies.forEach(b => _integrateVelocity(b, this.dt));
         this.contacts.forEach(c => c.positionalCorrection());
         this.bodies.forEach(b => {
-          _M.vecCopy(b.force, 0,0);
+          _V.vecCopy(b.force, 0,0);
           b.torque = 0;
         });
       }

@@ -32,6 +32,7 @@
     const _M=global["io.czlab.mcfud.math"]();
     const _G=global["io.czlab.mcfud.gfx"]();
     const _2d=global["io.czlab.mcfud.geo2d"]();
+    const _V= global["io.czlab.mcfud.vec2"]();
     const _=Core.u;
     const is=Core.is;
     /**
@@ -60,10 +61,10 @@
                         Math.abs(this.m11))
       }
       axisX(){
-        return _M.V2(this.m00, this.m10)
+        return _V.V2(this.m00, this.m10)
       }
       axisY(){
-        return _M.V2(this.m01, this.m11)
+        return _V.V2(this.m01, this.m11)
       }
       transpose(){
         return new Mat2(this.m00, this.m10, this.m01, this.m11)
@@ -75,7 +76,7 @@
      */
     Mat2.mul=function(a,rhs){
       if(is.vec(rhs))
-        return _M.V2(a.m00 * rhs[0] + a.m01 * rhs[1],
+        return _V.V2(a.m00 * rhs[0] + a.m01 * rhs[1],
                      a.m10 * rhs[0] + a.m11 * rhs[1])
       else
         return new Mat2(a.m00 * rhs.m00 + a.m01 * rhs.m10,
@@ -87,7 +88,7 @@
       ePoly: 100, eCircle: 200,
       M2: Mat2,
       dt: 1 / 60.0,
-      gravity: _M.V2(0, 10 * _gravityScale)
+      gravity: _V.V2(0, 10 * _gravityScale)
     };
     global["io.czlab.impulse_engine.shape"](_XP,Core,_M);
     global["io.czlab.impulse_engine.body"](_XP,Core,_M);
