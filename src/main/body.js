@@ -10,25 +10,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
 
-;(function(global){
+;(function(gscope){
+
   "use strict";
-  //export--------------------------------------------------------------------
-  if(typeof module === "object" &&
-     module && typeof module.exports === "object"){
-    global=module.exports;
-  }
-  else if(typeof exports === "object" && exports){
-    global=exports;
-  }
-  /**
-   * @public
-   * @function
-   */
-  global["io.czlab.impulse_engine.body"]=function(IE,Core,_M){
-    const _V=_M.Vec2;
-    const _= Core.u;
+
+  /** Create Module */
+  function _module(IE,Core,_M,_V){
+    const {u:_}= Core;
     /**
      * @public
      * @class
@@ -37,12 +27,12 @@
       constructor(shape_, x, y){
         this.shape= shape_;
         this.shape.body = this;
-        this.position= _V.V2(x,y);
-        this.velocity= _V.V2();
+        this.position= _V.vec(x,y);
+        this.velocity= _V.vec();
         this.angularVelocity = 0;
         this.torque = 0;
         this.rgb = "blue";
-        this.force= _V.V2();
+        this.force= _V.vec();
         this.staticFriction = 0.5;
         this.dynamicFriction = 0.3;
         this.restitution = 0.2;
@@ -52,12 +42,12 @@
         this.shape.initialize();
       }
       applyForce(f){
-        this.force= _V.vecAdd(this.force,f);
+        this.force= _V.add(this.force,f);
         return this;
       }
       applyImpulse(impulse, contactVector){
-        _V.vecAddSelf(this.velocity, _V.vecMul(impulse,this.im));
-        this.angularVelocity += this.iI * _V.vec2Cross(contactVector, impulse);
+        _V.add$(this.velocity, _V.mul(impulse,this.im));
+        this.angularVelocity += this.iI * _V.cross(contactVector, impulse);
         return this;
       }
       setStatic(){
@@ -76,6 +66,16 @@
 
     return _.inject(IE, { Body:Body })
   };
+
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  //exports
+  if(typeof module==="object" && module.exports){
+    throw "Panic: browser only"
+  }else{
+    gscope["io/czlab/impulse_engine/body"]=function(IE,Core,_M,_V){
+      return _module(IE,Core,_M,_V)
+    }
+  }
 
 })(this);
 

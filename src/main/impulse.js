@@ -10,31 +10,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
 
-;(function(global){
+;(function(gscope){
+
   "use strict";
-  //export--------------------------------------------------------------------
-  if(typeof module === "object" &&
-     module && typeof module.exports === "object"){
-    global=module.exports;
-  }
-  else if(typeof exports === "object" && exports){
-    global=exports;
-  }
-  const _gravityScale = 5.0;
-  /**
-   * @public
-   * @function
-   */
-  global["io.czlab.impulse_engine.core"]=function(){
-    const Core=global["io.czlab.mcfud.core"]();
-    const _M=global["io.czlab.mcfud.math"]();
-    const _G=global["io.czlab.mcfud.gfx"]();
-    const _2d=global["io.czlab.mcfud.geo2d"]();
-    const _V= global["io.czlab.mcfud.vec2"]();
-    const _=Core.u;
-    const is=Core.is;
+
+  /**Create module */
+  function _module(Core,_V){
+    const _2d=gscope["io/czlab/mcfud/geo2d"]();
+    const _M=gscope["io/czlab/mcfud/math"]();
+    const _G=gscope["io/czlab/mcfud/gfx"]();
+    const _gravityScale = 5.0;
+    const {u:_,is}=Core;
     /**
      * @public
      * @class
@@ -43,6 +31,9 @@
       constructor(a,b,c,d){
         this.m00= a; this.m01=b;
         this.m10=c; this.m11=d;
+        if(a===undefined){
+          this.set(0);
+        }
       }
       clone(){
         return new Mat2(this.m00, this.m01, this.m10, this.m11)
@@ -61,10 +52,10 @@
                         Math.abs(this.m11))
       }
       axisX(){
-        return _V.V2(this.m00, this.m10)
+        return _V.vec(this.m00, this.m10)
       }
       axisY(){
-        return _V.V2(this.m01, this.m11)
+        return _V.vec(this.m01, this.m11)
       }
       transpose(){
         return new Mat2(this.m00, this.m10, this.m01, this.m11)
@@ -76,28 +67,42 @@
      */
     Mat2.mul=function(a,rhs){
       if(is.vec(rhs))
-        return _V.V2(a.m00 * rhs[0] + a.m01 * rhs[1],
-                     a.m10 * rhs[0] + a.m11 * rhs[1])
+        return _V.vec(a.m00 * rhs[0] + a.m01 * rhs[1],
+                      a.m10 * rhs[0] + a.m11 * rhs[1])
       else
         return new Mat2(a.m00 * rhs.m00 + a.m01 * rhs.m10,
                         a.m00 * rhs.m01 + a.m01 * rhs.m11,
                         a.m10 * rhs.m00 + a.m11 * rhs.m10,
                         a.m10 * rhs.m01 + a.m11 * rhs.m11)
     };
-    const _XP={
-      ePoly: 100, eCircle: 200,
-      M2: Mat2,
-      dt: 1 / 60.0,
-      gravity: _V.V2(0, 10 * _gravityScale)
-    };
-    global["io.czlab.impulse_engine.shape"](_XP,Core,_M);
-    global["io.czlab.impulse_engine.body"](_XP,Core,_M);
-    global["io.czlab.impulse_engine.manifold"](_XP,Core,_M);
-    global["io.czlab.impulse_engine.collision"](_XP,Core,_M);
-    global["io.czlab.impulse_engine.scene"](_XP,Core,_M,_G,_2d);
-    return _XP;
-  };
 
+    const _$={
+      ePoly:100,
+      eCircle: 200,
+      Mat2,
+      dt: 1.0/60,
+      gravity: _V.vec(0, 10*_gravityScale)
+    };
+
+    gscope["io/czlab/impulse_engine/shape"](_$,Core,_M,_V,_G,_2d);
+    gscope["io/czlab/impulse_engine/body"](_$,Core,_M,_V);
+    gscope["io/czlab/impulse_engine/manifold"](_$,Core,_M,_V);
+    gscope["io/czlab/impulse_engine/collision"](_$,Core,_M,_V);
+    gscope["io/czlab/impulse_engine/scene"](_$,Core,_M,_V,_G,_2d);
+
+    return _$;
+  }
+
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  //exports
+  if(typeof module==="object" && module.exports){
+    throw "Panic: browser only"
+  }else{
+    gscope["io/czlab/impulse_engine/core"]=function(){
+      return _module(gscope["io/czlab/mcfud/core"](),
+                     gscope["io/czlab/mcfud/vec2"]())
+    }
+  }
 
 })(this);
 

@@ -1,12 +1,27 @@
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+
+"use strict";
 
 function userControl(e){
-
 }
 
 let XXXX={
   root: null,
   n:1
 };
+
 function mouseControl(evt){
   let btn= (0=== XXXX.n%2);
   let _=XXXX.Core.u;
@@ -46,7 +61,7 @@ function _run(s,canvas){
     s.step();
     for(let b,i=0;i<s.bodies.length;++i){
       b=s.bodies[i];
-      if(!XXXX._2d.containsPoint(XXXX.IE.gWorld,b.position[0],b.position[1]))
+      if(!XXXX._2d.rectContainsPoint(XXXX.IE.gWorld,b.position[0],b.position[1]))
         if(!XXXX._2d.rectContainsRect(XXXX.IE.gWorld,b.shape.getAABB())){
           s.bodies.splice(i,1);
           --i;
@@ -67,12 +82,12 @@ function _run(s,canvas){
 }
 
 function PhysicsGame(){
-  let IE=window["io.czlab.impulse_engine.core"]();
+  let IE=window["io/czlab/impulse_engine/core"]();
   let canvas=document.getElementById("canvas");
   let w=800,h=640;
-  let s= new IE.Scene(1/60.0,10);
-  XXXX.Core=window["io.czlab.mcfud.core"]();
-  XXXX._2d=window["io.czlab.mcfud.geo2d"]();
+  let s= new IE.World(1/60.0,10);
+  XXXX.Core=window["io/czlab/mcfud/core"]();
+  XXXX._2d=window["io/czlab/mcfud/geo2d"]();
   XXXX.IE=IE;
   XXXX.s=s;
   canvas.width=w;

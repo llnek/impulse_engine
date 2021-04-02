@@ -10,25 +10,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
 
-;(function(global){
+;(function(gscope){
+
   "use strict";
-  //export--------------------------------------------------------------------
-  if(typeof module === "object" &&
-     module && typeof module.exports === "object"){
-    global=module.exports;
-  }
-  else if(typeof exports === "object" && exports){
-    global=exports;
-  }
-  /**
-   * @public
-   * @function
-   */
-  global["io.czlab.impulse_engine.scene"]=function(IE,Core,_M,_G,_2d){
-    const _V=_M.Vec2;
-    const _=Core.u;
+
+  /**Create Module */
+  function _module(IE,Core,_M,_V,_G,_2d){
+    const {u:_}=Core;
 
     // Acceleration
     //    F = mA
@@ -39,35 +29,32 @@
     // Semi-Implicit (Symplectic) Euler
     // v += (1/m * F) * dt
     // x += v * dt
-    /**
-     * @private
-     * @function
-     */
+
+    /** @ignore */
     function _integrateForces(b, dt){
-      if(_M.fuzzyZero(b.im))
-        return;
-      let dt2= dt/2.0;
-      _V.vecAddSelf(b.velocity,
-                    _V.vecMul(_V.vecAdd(_V.vecMul(b.force,b.im),IE.gravity),dt2));
-      b.angularVelocity += b.torque * b.iI * dt2;
+      if(!_M.fuzzyZero(b.im)){
+        let dt2= dt/2.0;
+        _V.add$(b.velocity,
+                _V.mul(_V.add(_V.mul(b.force,b.im),IE.gravity),dt2));
+        b.angularVelocity += b.torque * b.iI * dt2;
+      }
     }
-    /**
-     * @private
-     * @function
-     */
+
+    /** @ignore */
     function _integrateVelocity(b, dt){
-      if(_M.fuzzyZero(b.im))
-        return;
-      _V.vecAddSelf(b.position,_V.vecMul(b.velocity,dt));
-      b.orient += b.angularVelocity * dt;
-      b.setOrient(b.orient);
-      _integrateForces(b, dt);
+      if(!_M.fuzzyZero(b.im)){
+        _V.add$(b.position,_V.mul(b.velocity,dt));
+        b.orient += b.angularVelocity * dt;
+        b.setOrient(b.orient);
+        _integrateForces(b, dt);
+      }
     }
+
     /**
      * @public
      * @class
      */
-    class Scene{
+    class World{
       constructor(dt, iterations){
         this.dt= dt;
         this.bodies=[];
@@ -77,15 +64,14 @@
       step(){
         // Generate new collision info
         this.contacts.length=0;
-        for(let A,i = 0; i < this.bodies.length; ++i){
+        for(let A,i=0; i < this.bodies.length; ++i){
           A = this.bodies[i];
-          for(let m,B,j = i+1; j < this.bodies.length; ++j){
+          for(let m,B,j= i+1; j < this.bodies.length; ++j){
             B = this.bodies[j];
-            if(_M.fuzzyZero(A.im) && _M.fuzzyZero(B.im))
-              continue;
-            m= new IE.Manifold(A, B).solve();
-            if(m.contact_count>0)
-              this.contacts.push(m);
+            if(!(_M.fuzzyZero(A.im) && _M.fuzzyZero(B.im))){
+              m= new IE.Manifold(A, B).solve();
+              if(m.contact_count>0) this.contacts.push(m);
+            }
           }
         }
         // Integrate forces
@@ -101,7 +87,7 @@
         this.bodies.forEach(b => _integrateVelocity(b, this.dt));
         this.contacts.forEach(c => c.positionalCorrection());
         this.bodies.forEach(b => {
-          _V.vecCopy(b.force, 0,0);
+          _V.copy(b.force, 0,0);
           b.torque = 0;
         });
       }
@@ -115,8 +101,18 @@
       }
     }
 
-    return _.inject(IE, { Scene: Scene })
+    return _.inject(IE, { World: World })
   };
+
+  //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  //exports
+  if(typeof module==="object" && module.exports){
+    throw "Panic: browser only"
+  }else{
+    gscope["io/czlab/impulse_engine/scene"]=function(IE,Core,_M,_V,_G,_2d){
+      return _module(IE,Core,_M,_V,_G,_2d)
+    }
+  }
 
 })(this);
 
