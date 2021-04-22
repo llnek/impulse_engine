@@ -87,7 +87,7 @@
         this.bodies.forEach(b => _integrateVelocity(b, this.dt));
         this.contacts.forEach(c => c.positionalCorrection());
         this.bodies.forEach(b => {
-          _V.copy(b.force, 0,0);
+          _V.set(b.force, 0,0);
           b.torque = 0;
         });
       }

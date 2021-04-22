@@ -617,8 +617,8 @@
         return this;
       }
       infiniteMassCorrection(){
-        _V.copy(this.A.velocity,0, 0);
-        _V.copy(this.B.velocity,0, 0);
+        _V.set(this.A.velocity,0, 0);
+        _V.set(this.B.velocity,0, 0);
         return this;
       }
     }
@@ -689,12 +689,12 @@
         if(_M.fuzzyZero(distance)){
           m.penetration = A.radius;
           m.normal = _V.vec(1, 0);
-          _V.set(m.contacts[0], a.position);
+          _V.copy(m.contacts[0], a.position);
         }else{
           m.penetration = radius - distance;
           m.normal = _V.div(normal,distance);
-          _V.set(m.contacts[0],
-                 _V.add(_V.mul(m.normal,A.radius),a.position));
+          _V.copy(m.contacts[0],
+                  _V.add(_V.mul(m.normal,A.radius),a.position));
         }
       },
       circlePolygon:function(m, a, b){
@@ -724,8 +724,8 @@
         if(separation < IE.EPSILON){
           m.contact_count = 1;
           m.normal = _V.flip(Mat2.mul(B.u,B.normals[faceNormal]));
-          _V.set(m.contacts[0],
-                 _V.add(_V.mul(m.normal,A.radius),a.position));
+          _V.copy(m.contacts[0],
+                  _V.add(_V.mul(m.normal,A.radius),a.position));
           m.penetration = A.radius;
           return;
         }
@@ -740,7 +740,7 @@
           m.contact_count = 1;
           let n = _V.sub(v1,center);
           m.normal = _V.unit(Mat2.mul(B.u, n));
-          _V.set(m.contacts[0], _V.add(Mat2.mul(B.u,v1),b.position));
+          _V.copy(m.contacts[0], _V.add(Mat2.mul(B.u,v1),b.position));
         }
         // Closest to v2
         else if(dot2 <= 0.0){
@@ -749,15 +749,15 @@
           m.contact_count = 1;
           let n = _V.sub(v2,center);
           m.normal = _V.unit(Mat2.mul(B.u, n));
-          _V.set(m.contacts[0], _V.add(Mat2.mul(B.u,v2),b.position));
+          _V.copy(m.contacts[0], _V.add(Mat2.mul(B.u,v2),b.position));
         }else{
           // Closest to face
           let n = B.normals[faceNormal];
           if(_V.dot(_V.sub(center,v1), n) > A.radius)
             return;
           m.normal = _V.flip(Mat2.mul(B.u, n));
-          _V.set(m.contacts[0],
-                 _V.add(_V.mul(m.normal,A.radius),a.position));
+          _V.copy(m.contacts[0],
+                  _V.add(_V.mul(m.normal,A.radius),a.position));
           m.contact_count = 1;
         }
       }
@@ -1046,7 +1046,7 @@
         this.bodies.forEach(b => _integrateVelocity(b, this.dt));
         this.contacts.forEach(c => c.positionalCorrection());
         this.bodies.forEach(b => {
-          _V.copy(b.force, 0,0);
+          _V.set(b.force, 0,0);
           b.torque = 0;
         });
       }

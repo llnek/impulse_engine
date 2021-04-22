@@ -127,8 +127,8 @@
         return this;
       }
       infiniteMassCorrection(){
-        _V.copy(this.A.velocity,0, 0);
-        _V.copy(this.B.velocity,0, 0);
+        _V.set(this.A.velocity,0, 0);
+        _V.set(this.B.velocity,0, 0);
         return this;
       }
     }
