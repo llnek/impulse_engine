@@ -10,9 +10,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
@@ -64,12 +64,12 @@
       }
     }
 
-    return _.inject(IE, { Body:Body })
+    return _.inject(IE, { Body })
   };
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/body"]=function(IE,Core,_M,_V){

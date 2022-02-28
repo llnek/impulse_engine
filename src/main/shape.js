@@ -10,9 +10,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
@@ -177,6 +177,17 @@
       getType(){ return IE.ePoly }
       // Half width and half height
       setBox(hw,hh){
+        /*
+         <----------^
+         |          |
+         |          |---->
+         |          |
+         V---------->
+             |
+             |
+             V
+         edges go CCW, normals outward [y, -x]
+         */
         this.normals.length=0;
         this.points.length=0;
         this.points[0]= _V.vec( -hw, -hh );
@@ -204,7 +215,7 @@
             rightMost = i;
           }
           // If matching x then take farthest negative y
-          else if(_M.fuzzyEq(x, highestXCoord)){
+          else if(_.feq(x, highestXCoord)){
             if(vertices[i][1] < vertices[rightMost][1]) rightMost = i;
           }
         }
@@ -235,7 +246,7 @@
               nextHullIndex = i;
             // Cross product is zero then e vectors are on same line
             // therefor want to record vertex farthest along that line
-            if(_M.fuzzyZero(c) && _V.len2(e2) > _V.len2(e1))
+            if(_.feq0(c) && _V.len2(e2) > _V.len2(e1))
               nextHullIndex = i;
           }
           ++outCount;
@@ -286,7 +297,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/shape"]=function(IE,Core,_M,_V,_G,_2d){

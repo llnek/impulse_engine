@@ -10,19 +10,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /**Create module */
   function _module(Core,_V){
+
     const _2d=gscope["io/czlab/mcfud/geo2d"]();
     const _M=gscope["io/czlab/mcfud/math"]();
     const _G=gscope["io/czlab/mcfud/gfx"]();
+
     const _gravityScale = 5.0;
     const {u:_,is}=Core;
+
     /**
      * @public
      * @class
@@ -95,7 +98,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/core"]=function(){

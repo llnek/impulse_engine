@@ -10,31 +10,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /** Create Module */
   function _module(IE,Core,_M,_V){
+
     const {Mat2}=IE;
     const {u:_}=Core;
 
-
-
     const _$={
-      dispatch:function(t1,t2){
+      dispatch(t1,t2){
         if(t1===IE.eCircle){
           return t2===IE.eCircle ? this.circleCircle : this.circlePolygon
         }else if(t1===IE.ePoly){
           return t2===IE.eCircle ? this.polygonCircle : this.polygonPolygon
         }
       },
-      circleCircle:function(m, a, b){
+      circleCircle(m, a, b){
         let A = a.shape;
         let B = b.shape;
-        // Calculate translational vector, which is normal
+        // calculate translational vector, which is normal
         let normal = _V.sub(b.position, a.position);
         let dist_sqr = _V.len2(normal);
         let radius = A.radius + B.radius;
@@ -45,7 +44,7 @@
         }
         let distance = Math.sqrt(dist_sqr);
         m.contact_count = 1;
-        if(_M.fuzzyZero(distance)){
+        if(_.feq0(distance)){
           m.penetration = A.radius;
           m.normal = _V.vec(1, 0);
           _V.copy(m.contacts[0], a.position);
@@ -56,7 +55,7 @@
                   _V.add(_V.mul(m.normal,A.radius),a.position));
         }
       },
-      circlePolygon:function(m, a, b){
+      circlePolygon(m, a, b){
         let A = a.shape;
         let B = b.shape;
         m.contact_count = 0;
@@ -219,11 +218,11 @@
       m.contact_count = 0;
       // Check for a separating axis with A's face planes
       let [penetrationA,faceA] = _findAxisLeastPenetration(A, B);
-      if(penetrationA >= 0.0)
+      if(penetrationA >= 0)
         return;
       // Check for a separating axis with B's face planes
       let [penetrationB,faceB] = _findAxisLeastPenetration(B, A);
-      if(penetrationB >= 0.0)
+      if(penetrationB >= 0)
         return;
 
       let RefPoly; // Reference
@@ -282,7 +281,7 @@
       // Keep points behind reference face
       let cp = 0; // clipped points behind reference face
       let separation = _V.dot(refFaceNormal, incidentFace[0]) - refC;
-      if(separation <= 0.0){
+      if(separation <= 0){
         m.contacts[cp] = incidentFace[0];
         m.penetration = -separation;
         ++cp;
@@ -290,7 +289,7 @@
         m.penetration = 0;
       }
       separation = _V.dot(refFaceNormal, incidentFace[1]) - refC;
-      if(separation <= 0.0){
+      if(separation <= 0){
         m.contacts[cp] = incidentFace[1];
         m.penetration += -separation;
         ++cp;
@@ -305,7 +304,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/collision"]=function(IE,Core,_M,_V){

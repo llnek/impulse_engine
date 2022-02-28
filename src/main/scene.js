@@ -10,14 +10,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /**Create Module */
   function _module(IE,Core,_M,_V,_G,_2d){
+
     const {u:_}=Core;
 
     // Acceleration
@@ -32,7 +33,7 @@
 
     /** @ignore */
     function _integrateForces(b, dt){
-      if(!_M.fuzzyZero(b.im)){
+      if(!_.feq0(b.im)){
         let dt2= dt/2.0;
         _V.add$(b.velocity,
                 _V.mul(_V.add(_V.mul(b.force,b.im),IE.gravity),dt2));
@@ -42,7 +43,7 @@
 
     /** @ignore */
     function _integrateVelocity(b, dt){
-      if(!_M.fuzzyZero(b.im)){
+      if(!_.feq0(b.im)){
         _V.add$(b.position,_V.mul(b.velocity,dt));
         b.orient += b.angularVelocity * dt;
         b.setOrient(b.orient);
@@ -68,7 +69,7 @@
           A = this.bodies[i];
           for(let m,B,j= i+1; j < this.bodies.length; ++j){
             B = this.bodies[j];
-            if(!(_M.fuzzyZero(A.im) && _M.fuzzyZero(B.im))){
+            if(!(_.feq0(A.im) && _.feq0(B.im))){
               m= new IE.Manifold(A, B).solve();
               if(m.contact_count>0) this.contacts.push(m);
             }
@@ -106,7 +107,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/scene"]=function(IE,Core,_M,_V,_G,_2d){

@@ -10,15 +10,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /** Create Module */
   function _module(IE,Core,_M,_V){
+
     const {u:_}= Core;
+
     /**
      * @public
      * @class
@@ -102,7 +104,7 @@
           jt /= invMassSum;
           jt /= this.contact_count;
           // Don't apply tiny friction impulses
-          if(_M.fuzzyZero(jt))
+          if(_.feq0(jt))
             return this;
           // Coulumb's law
           let tangentImpulse;
@@ -138,7 +140,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/manifold"]=function(IE,Core,_M,_V){

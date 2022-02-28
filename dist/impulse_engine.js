@@ -10,19 +10,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /**Create module */
   function _module(Core,_V){
+
     const _2d=gscope["io/czlab/mcfud/geo2d"]();
     const _M=gscope["io/czlab/mcfud/math"]();
     const _G=gscope["io/czlab/mcfud/gfx"]();
+
     const _gravityScale = 5.0;
     const {u:_,is}=Core;
+
     /**
      * @public
      * @class
@@ -95,7 +98,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/core"]=function(){
@@ -119,9 +122,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
@@ -286,6 +289,17 @@
       getType(){ return IE.ePoly }
       // Half width and half height
       setBox(hw,hh){
+        /*
+         <----------^
+         |          |
+         |          |---->
+         |          |
+         V---------->
+             |
+             |
+             V
+         edges go CCW, normals outward [y, -x]
+         */
         this.normals.length=0;
         this.points.length=0;
         this.points[0]= _V.vec( -hw, -hh );
@@ -313,7 +327,7 @@
             rightMost = i;
           }
           // If matching x then take farthest negative y
-          else if(_M.fuzzyEq(x, highestXCoord)){
+          else if(_.feq(x, highestXCoord)){
             if(vertices[i][1] < vertices[rightMost][1]) rightMost = i;
           }
         }
@@ -344,7 +358,7 @@
               nextHullIndex = i;
             // Cross product is zero then e vectors are on same line
             // therefor want to record vertex farthest along that line
-            if(_M.fuzzyZero(c) && _V.len2(e2) > _V.len2(e1))
+            if(_.feq0(c) && _V.len2(e2) > _V.len2(e1))
               nextHullIndex = i;
           }
           ++outCount;
@@ -395,7 +409,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/shape"]=function(IE,Core,_M,_V,_G,_2d){
@@ -418,9 +432,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
@@ -472,12 +486,12 @@
       }
     }
 
-    return _.inject(IE, { Body:Body })
+    return _.inject(IE, { Body })
   };
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/body"]=function(IE,Core,_M,_V){
@@ -500,15 +514,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /** Create Module */
   function _module(IE,Core,_M,_V){
+
     const {u:_}= Core;
+
     /**
      * @public
      * @class
@@ -592,7 +608,7 @@
           jt /= invMassSum;
           jt /= this.contact_count;
           // Don't apply tiny friction impulses
-          if(_M.fuzzyZero(jt))
+          if(_.feq0(jt))
             return this;
           // Coulumb's law
           let tangentImpulse;
@@ -628,7 +644,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/manifold"]=function(IE,Core,_M,_V){
@@ -651,31 +667,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /** Create Module */
   function _module(IE,Core,_M,_V){
+
     const {Mat2}=IE;
     const {u:_}=Core;
 
-
-
     const _$={
-      dispatch:function(t1,t2){
+      dispatch(t1,t2){
         if(t1===IE.eCircle){
           return t2===IE.eCircle ? this.circleCircle : this.circlePolygon
         }else if(t1===IE.ePoly){
           return t2===IE.eCircle ? this.polygonCircle : this.polygonPolygon
         }
       },
-      circleCircle:function(m, a, b){
+      circleCircle(m, a, b){
         let A = a.shape;
         let B = b.shape;
-        // Calculate translational vector, which is normal
+        // calculate translational vector, which is normal
         let normal = _V.sub(b.position, a.position);
         let dist_sqr = _V.len2(normal);
         let radius = A.radius + B.radius;
@@ -686,7 +701,7 @@
         }
         let distance = Math.sqrt(dist_sqr);
         m.contact_count = 1;
-        if(_M.fuzzyZero(distance)){
+        if(_.feq0(distance)){
           m.penetration = A.radius;
           m.normal = _V.vec(1, 0);
           _V.copy(m.contacts[0], a.position);
@@ -697,7 +712,7 @@
                   _V.add(_V.mul(m.normal,A.radius),a.position));
         }
       },
-      circlePolygon:function(m, a, b){
+      circlePolygon(m, a, b){
         let A = a.shape;
         let B = b.shape;
         m.contact_count = 0;
@@ -860,11 +875,11 @@
       m.contact_count = 0;
       // Check for a separating axis with A's face planes
       let [penetrationA,faceA] = _findAxisLeastPenetration(A, B);
-      if(penetrationA >= 0.0)
+      if(penetrationA >= 0)
         return;
       // Check for a separating axis with B's face planes
       let [penetrationB,faceB] = _findAxisLeastPenetration(B, A);
-      if(penetrationB >= 0.0)
+      if(penetrationB >= 0)
         return;
 
       let RefPoly; // Reference
@@ -923,7 +938,7 @@
       // Keep points behind reference face
       let cp = 0; // clipped points behind reference face
       let separation = _V.dot(refFaceNormal, incidentFace[0]) - refC;
-      if(separation <= 0.0){
+      if(separation <= 0){
         m.contacts[cp] = incidentFace[0];
         m.penetration = -separation;
         ++cp;
@@ -931,7 +946,7 @@
         m.penetration = 0;
       }
       separation = _V.dot(refFaceNormal, incidentFace[1]) - refC;
-      if(separation <= 0.0){
+      if(separation <= 0){
         m.contacts[cp] = incidentFace[1];
         m.penetration += -separation;
         ++cp;
@@ -946,7 +961,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/collision"]=function(IE,Core,_M,_V){
@@ -969,14 +984,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
-;(function(gscope){
+;(function(gscope,UNDEF){
 
   "use strict";
 
   /**Create Module */
   function _module(IE,Core,_M,_V,_G,_2d){
+
     const {u:_}=Core;
 
     // Acceleration
@@ -991,7 +1007,7 @@
 
     /** @ignore */
     function _integrateForces(b, dt){
-      if(!_M.fuzzyZero(b.im)){
+      if(!_.feq0(b.im)){
         let dt2= dt/2.0;
         _V.add$(b.velocity,
                 _V.mul(_V.add(_V.mul(b.force,b.im),IE.gravity),dt2));
@@ -1001,7 +1017,7 @@
 
     /** @ignore */
     function _integrateVelocity(b, dt){
-      if(!_M.fuzzyZero(b.im)){
+      if(!_.feq0(b.im)){
         _V.add$(b.position,_V.mul(b.velocity,dt));
         b.orient += b.angularVelocity * dt;
         b.setOrient(b.orient);
@@ -1027,7 +1043,7 @@
           A = this.bodies[i];
           for(let m,B,j= i+1; j < this.bodies.length; ++j){
             B = this.bodies[j];
-            if(!(_M.fuzzyZero(A.im) && _M.fuzzyZero(B.im))){
+            if(!(_.feq0(A.im) && _.feq0(B.im))){
               m= new IE.Manifold(A, B).solve();
               if(m.contact_count>0) this.contacts.push(m);
             }
@@ -1065,7 +1081,7 @@
 
   //;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   //exports
-  if(typeof module==="object" && module.exports){
+  if(typeof module=="object" && module.exports){
     throw "Panic: browser only"
   }else{
     gscope["io/czlab/impulse_engine/scene"]=function(IE,Core,_M,_V,_G,_2d){

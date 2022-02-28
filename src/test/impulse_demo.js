@@ -10,7 +10,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Copyright © 2020-2021, Kenneth Leung. All rights reserved.
+// Copyright © 2020-2022, Kenneth Leung. All rights reserved.
 
 "use strict";
 
@@ -67,7 +67,7 @@ function _run(s,canvas){
           --i;
         }
     }
-    if(s.bodies.length===1 && !XXXX.root){
+    if(s.bodies.length==1 && !XXXX.root){
       let b= s.bodies[0];
       XXXX.rootOrient=b.orient;
       XXXX.root=b;
