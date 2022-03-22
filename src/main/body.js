@@ -36,7 +36,7 @@
         this.staticFriction = 0.5;
         this.dynamicFriction = 0.3;
         this.restitution = 0.2;
-        this.orient = _.randFloat(-Math.PI, Math.PI);
+        this.orient = _.randFloat2(-Math.PI, Math.PI);
         if(this.shape.isCircular()){ this.rgb = "magenta" }
         //do this last
         this.shape.initialize();
